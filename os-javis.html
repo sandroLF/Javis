@@ -1,0 +1,2633 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>iFC3D Forja — Ordens de Serviço</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #121212;
+  --bg2: #1a1a1a;
+  --card: #1e1e1e;
+  --border: #2c2c2c;
+  --gold: #c9a24b;
+  --gold-dim: #8a7238;
+  --text: #ece7dc;
+  --text-dim: #9a938a;
+  --st-aguardando: #7a7a7a;
+  --st-producao: #d98a2b;
+  --st-concluido: #4a9d5c;
+  --st-entregue: #3d7fbf;
+  --st-cancelado: #b3423c;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Barlow Condensed', sans-serif;
+  min-height: 100%;
+}
+h1, h2, .brand { font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.5px; }
+header {
+  position: sticky; top: env(safe-area-inset-top, 0px);
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 18px;
+  z-index: 10;
+}
+header .brand { font-size: 26px; color: var(--gold); margin: 0; }
+header .sub { font-size: 13px; color: var(--text-dim); margin-top: 2px; }
+.wrap { max-width: 900px; margin: 0 auto; padding: 16px; }
+.toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+.filters { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; }
+.chip {
+  border: 1px solid var(--border); background: transparent; color: var(--text-dim);
+  padding: 6px 12px; border-radius: 999px; font-size: 14px; cursor: pointer;
+  font-family: 'Barlow Condensed', sans-serif;
+}
+.chip.active { border-color: var(--gold); color: var(--gold); }
+.btn-new {
+  background: var(--gold); color: #1a1408; border: none; padding: 9px 16px;
+  border-radius: 8px; font-weight: 700; font-size: 15px; cursor: pointer;
+  font-family: 'Barlow Condensed', sans-serif;
+}
+.btn-new:active { opacity: 0.85; }
+.empty { text-align: center; color: var(--text-dim); padding: 60px 20px; font-size: 17px; }
+.card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+  padding: 12px 14px; margin-bottom: 10px; cursor: pointer;
+}
+.card:active { border-color: var(--gold-dim); }
+.card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.card-num { color: var(--gold); font-size: 15px; font-weight: 600; }
+.card-cliente { font-size: 19px; font-weight: 600; margin: 2px 0 4px; }
+.card-meta { color: var(--text-dim); font-size: 14px; }
+.badge {
+  font-size: 12px; padding: 3px 10px; border-radius: 999px; color: #fff;
+  white-space: nowrap; font-weight: 600;
+}
+.card-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 14px; color: var(--text-dim); }
+.card-valor { color: var(--gold); font-weight: 600; }
+
+.modal-bg {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none;
+  align-items: flex-end; justify-content: center; z-index: 100;
+}
+.modal-bg.open { display: flex; }
+.modal {
+  background: var(--bg2); width: 100%; max-width: 560px; max-height: 92vh; overflow-y: auto;
+  border-radius: 16px 16px 0 0; padding: 18px 18px calc(20px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--border);
+}
+.modal h2 { margin: 0 0 12px; font-size: 24px; color: var(--gold); }
+label { display: block; font-size: 13px; color: var(--text-dim); margin: 12px 0 4px; }
+input, select, textarea {
+  width: 100%; background: var(--card); border: 1px solid var(--border); color: var(--text);
+  padding: 10px; border-radius: 8px; font-size: 16px; font-family: 'Barlow Condensed', sans-serif;
+}
+textarea { min-height: 60px; resize: vertical; }
+.row2 { display: flex; gap: 10px; }
+.row2 > div { flex: 1; }
+.modal-actions { display: flex; gap: 10px; margin-top: 18px; }
+.btn { flex: 1; padding: 11px; border-radius: 8px; border: none; font-size: 16px; font-weight: 700; cursor: pointer; font-family: 'Barlow Condensed', sans-serif; }
+.btn-save { background: var(--gold); color: #1a1408; }
+.btn-cancel { background: transparent; border: 1px solid var(--border); color: var(--text-dim); }
+.btn-delete { background: transparent; border: 1px solid var(--st-cancelado); color: var(--st-cancelado); }
+.status-select-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.status-opt {
+  border: 1px solid var(--border); background: transparent; color: var(--text-dim);
+  padding: 6px 10px; border-radius: 8px; font-size: 13px; cursor: pointer;
+  font-family: 'Barlow Condensed', sans-serif;
+}
+.status-opt.sel { border-color: currentColor; font-weight: 700; }
+.dash { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+.dash-row { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.dash-label { width: 92px; color: var(--text-dim); flex-shrink: 0; }
+.dash-bar-bg { flex: 1; background: var(--card); border: 1px solid var(--border); border-radius: 6px; height: 16px; overflow: hidden; }
+.dash-bar-fill { height: 100%; border-radius: 6px 0 0 6px; }
+.dash-count { width: 22px; text-align: right; color: var(--text); font-weight: 600; }
+.btn-export {
+  background: transparent; color: var(--gold); border: 1px solid var(--gold-dim);
+  padding: 9px 14px; border-radius: 8px; font-size: 15px; cursor: pointer;
+  font-family: 'Barlow Condensed', sans-serif;
+}
+.terceiro-box { display: flex; align-items: center; gap: 8px; margin-top: 14px; }
+.terceiro-box label { margin: 0; font-size: 15px; color: var(--text); }
+.secao { margin-top: 16px; padding: 12px; border: 1px solid var(--gold-dim); border-radius: 10px; }
+.secao-titulo { font-family: 'Bebas Neue', sans-serif; font-size: 19px; color: var(--gold); }
+.row3 { display: flex; gap: 8px; }
+.row3 > div { flex: 1; min-width: 0; }
+.saldo { padding: 10px; border-radius: 8px; background: var(--card); border: 1px solid var(--border); font-size: 16px; font-weight: 700; text-align: center; }
+.sobra-row { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
+.sobra-row input { padding: 8px; font-size: 15px; }
+.sobra-row .x { color: var(--text-dim); }
+.btn-rm { background: transparent; border: 1px solid var(--st-cancelado); color: var(--st-cancelado); border-radius: 8px; width: 34px; height: 36px; flex-shrink: 0; cursor: pointer; font-size: 16px; }
+.btn-add-sobra { background: transparent; border: 1px dashed var(--gold-dim); color: var(--gold); border-radius: 8px; padding: 8px; width: 100%; cursor: pointer; font-family: 'Barlow Condensed', sans-serif; font-size: 15px; }
+.tag-terceiro { font-size: 11px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--gold-dim); color: var(--gold); }
+
+.tabs { display: flex; gap: 6px; margin-top: 10px; }
+.tab { flex: 1; background: transparent; border: 1px solid var(--border); color: var(--text-dim); padding: 8px; border-radius: 8px; font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 600; cursor: pointer; }
+.tab.active { background: var(--gold); border-color: var(--gold); color: #1a1408; }
+.kpis { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 14px; }
+@media (min-width: 640px) { .kpis { grid-template-columns: repeat(4, 1fr); } }
+.kpi { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
+.kpi span { display: block; font-size: 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: .3px; }
+.kpi b { font-size: 24px; }
+.est-tabela { background: var(--card); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 18px; }
+.est-row { display: grid; grid-template-columns: 1fr 44px 52px 52px 52px; gap: 6px; align-items: center; padding: 10px 12px; border-top: 1px solid var(--border); font-size: 15px; cursor: pointer; }
+.est-row > span { text-align: center; }
+.est-row > span:first-child { text-align: left; }
+.est-row.est-head { border-top: none; background: var(--bg2); font-size: 12px; color: var(--text-dim); text-transform: uppercase; cursor: default; }
+.est-row.sel { background: rgba(201,162,75,0.12); }
+.est-cor { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sec-head { display: flex; justify-content: space-between; align-items: center; margin: 4px 0 8px; }
+.sec-head h3 { margin: 0; font-family: 'Bebas Neue', sans-serif; font-size: 21px; color: var(--gold); font-weight: 400; letter-spacing: .5px; }
+.link-btn { background: none; border: none; color: var(--gold); font-family: 'Barlow Condensed', sans-serif; font-size: 14px; cursor: pointer; text-decoration: underline; }
+.mov { display: flex; gap: 10px; align-items: center; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 9px 12px; margin-bottom: 6px; }
+.mov-q { font-size: 22px; font-weight: 700; min-width: 46px; text-align: center; }
+.mov-info { flex: 1; min-width: 0; font-size: 15px; }
+.mov-sub { font-size: 13px; color: var(--text-dim); }
+.tag-auto { font-size: 11px; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--border); color: var(--text-dim); }
+.estoque-hint { font-size: 13px; color: var(--text-dim); margin-top: 6px; min-height: 16px; }
+.btn-sec { background: transparent; color: var(--text-dim); border: 1px solid var(--border); padding: 9px 12px; border-radius: 8px; font-size: 15px; cursor: pointer; font-family: 'Barlow Condensed', sans-serif; }
+.btn-saida { background: transparent; color: var(--st-cancelado); border: 1px solid var(--st-cancelado); padding: 9px 14px; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: 'Barlow Condensed', sans-serif; }
+input[type="search"] { margin-bottom: 10px; }
+
+[hidden] { display: none !important; }
+.acesso { display: inline-block; margin-left: 8px; font-size: 11px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--border); color: var(--text-dim); vertical-align: 1px; }
+.aviso-acesso { background: rgba(179,66,60,.12); border: 1px solid var(--st-cancelado); color: var(--text); border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; font-size: 15px; line-height: 1.35; }
+.aviso-acesso b { color: var(--st-cancelado); }
+.etq-cor { display: inline-block; width: 22px; height: 14px; border-radius: 3px; vertical-align: -2px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.3); margin-right: 5px; }
+.etq-sel { display: flex; align-items: center; gap: 8px; }
+.etq-sel .etq-cor { width: 34px; height: 38px; border-radius: 8px; margin: 0; flex-shrink: 0; }
+.card-final { font-size: 14px; color: var(--text-dim); margin: -2px 0 4px; }
+.btn-wa { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; background: #25d366; color: #06210f; border: none; border-radius: 8px; padding: 11px; font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 700; text-decoration: none; cursor: pointer; }
+.btn-wa[aria-disabled="true"] { background: var(--card); color: var(--text-dim); border: 1px dashed var(--border); pointer-events: none; }
+.wa-hint { font-size: 12px; color: var(--text-dim); margin-top: 5px; }
+.hist { margin-top: 10px; border-left: 2px solid var(--border); padding-left: 10px; }
+.hist div { font-size: 13px; color: var(--text-dim); margin-bottom: 3px; }
+.hist b { color: var(--text); font-weight: 600; }
+.subtabs { display: flex; gap: 6px; margin-bottom: 14px; border-bottom: 1px solid var(--border); }
+.subtab { background: none; border: none; border-bottom: 3px solid transparent; color: var(--text-dim); font-family: 'Barlow Condensed', sans-serif; font-size: 17px; font-weight: 600; padding: 8px 12px; cursor: pointer; }
+.subtab.active { color: var(--gold); border-bottom-color: var(--gold); }
+.estf-row { grid-template-columns: 50px 34px minmax(0,1fr) 48px 40px 48px !important; gap: 4px !important; padding: 10px 8px !important; }
+.estf-row > span:nth-child(3) { text-align: left !important; }
+.fita-estoque { font-size: 13px; margin-top: 4px; }
+.fita { border: 1px solid var(--border); border-radius: 10px; padding: 10px; margin: 10px 0 8px; background: var(--card); }
+.fita-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.fita-top b { font-size: 15px; color: var(--gold); }
+.fita label { margin-top: 8px; }
+.fita .row2 > div { min-width: 0; }
+.fita-uso { font-size: 13px; color: var(--text-dim); margin-top: 4px; }
+.fita-alerta { font-size: 13px; color: var(--st-producao); margin-top: 6px; }
+.fita-total { font-size: 14px; color: var(--text-dim); margin-top: 8px; text-align: right; }
+.fita-total b { color: var(--text); font-size: 17px; }
+.esp-fita { display: flex; gap: 6px; flex-wrap: wrap; }
+.esp-fita button { flex: 1; min-width: 56px; padding: 8px 4px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--text-dim); font-family: 'Barlow Condensed', sans-serif; font-size: 15px; cursor: pointer; }
+.esp-fita button.sel { border-color: var(--gold); color: var(--gold); font-weight: 700; }
+.dlg-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.65); display: flex; align-items: center; justify-content: center; z-index: 300; padding: 16px; }
+.dlg { background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; padding: 18px; width: 100%; max-width: 420px; }
+.dlg p { margin: 0 0 16px; font-size: 17px; line-height: 1.35; white-space: pre-line; }
+.dlg textarea { min-height: 180px; font-size: 14px; }
+.dlg .modal-actions { margin-top: 12px; }
+.imp-erro { color: var(--st-cancelado); font-size: 14px; margin-top: 8px; }
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #f4f1ea; --bg2: #ffffff; --card: #ffffff; --border: #ddd6c8;
+    --text: #22201a; --text-dim: #6f6a5e;
+  }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">IFC3D FORJA</div>
+  <div class="sub"><span id="headerSub">Ordens de Serviço</span><span class="acesso" id="acessoTag" hidden></span></div>
+  <div class="tabs">
+    <button class="tab active" data-aba="ordens">Ordens de Serviço</button>
+    <button class="tab" data-aba="estoque">Estoque</button>
+  </div>
+</header>
+
+<div id="avisoAcesso" hidden style="padding:16px 16px 0"><div class="aviso-acesso" id="avisoAcessoTexto" style="max-width:868px;margin:0 auto"></div></div>
+<div class="wrap" id="viewOrdens">
+  <div class="dash" id="dash"></div>
+  <div class="toolbar">
+    <div class="filters" id="filters"></div>
+    <button class="btn-export" id="btnExport">Relatório PDF</button>
+    <button class="btn-export" id="btnImportar">Importar pedido</button>
+    <button class="btn-export" id="btnBackup">Backup</button>
+    <button class="btn-new" id="btnNew">+ Nova OS</button>
+  </div>
+  <div id="list"></div>
+  <div class="note" id="statusNote"></div>
+</div>
+
+<div class="wrap" id="viewEstoque" style="display:none">
+  <div class="subtabs">
+    <button class="subtab active" data-sub="chapas">Chapas</button>
+    <button class="subtab" data-sub="fitas">Fitas de borda</button>
+  </div>
+  <div id="subChapas">
+  <div class="kpis" id="estoqueResumo"></div>
+  <div class="toolbar">
+    <button class="btn-new" id="btnEntrada">+ Entrada de chapas</button>
+    <button class="btn-saida" id="btnSaida">− Saída manual</button>
+    <button class="btn-export" id="btnEstoquePdf">PDF do estoque</button>
+  </div>
+  <input type="search" id="buscaEstoque" placeholder="Buscar cor do MDF...">
+  <div class="est-tabela" id="estoqueTabela"></div>
+  <div class="sec-head"><h3 id="movTitulo">Últimas movimentações</h3><button class="link-btn" id="movLimpar" style="display:none">ver todas</button></div>
+  <div id="movList"></div>
+  <div class="note" id="movAviso" style="display:none;color:var(--st-producao)">O histórico está perto do limite de registros suportado. Peça para consolidar o histórico antigo.</div>
+  <div style="text-align:center;margin-top:18px">
+    <button class="btn-sec" id="btnSync">Sincronizar OS antigas</button>
+    <div class="note" style="margin-top:6px">Baixa automática: as chapas usadas saem do estoque quando a OS vai para Em Produção, Concluído ou Entregue. Chapas recebidas junto com a OS entram no estoque.</div>
+  </div>
+  </div>
+
+  <div id="subFitas" hidden>
+    <div class="kpis" id="fitaResumo"></div>
+    <div class="toolbar">
+      <button class="btn-new" id="btnEntradaFita">+ Entrada de fita</button>
+      <button class="btn-saida" id="btnSaidaFita">− Saída manual</button>
+      <button class="btn-export" id="btnEstoquePdf2">PDF do estoque</button>
+    </div>
+    <input type="search" id="buscaFita" placeholder="Buscar cor ou largura da fita...">
+    <div class="est-tabela" id="fitaTabela"></div>
+    <div class="sec-head"><h3 id="movFitaTitulo">Últimas movimentações</h3><button class="link-btn" id="movFitaLimpar" style="display:none">ver todas</button></div>
+    <div id="movFitaList"></div>
+    <div class="note" style="text-align:center;margin-top:18px">Baixa automática: os metros de fita da OS saem do estoque quando a OS vai para Em Produção, Concluído ou Entregue. Fita sem cor informada usa a cor do MDF da OS.</div>
+  </div>
+</div>
+
+<div class="modal-bg" id="fitaModalBg">
+  <div class="modal">
+    <h2 id="fitaModalTitulo">Entrada de fita</h2>
+    <div class="row2">
+      <div>
+        <label for="fmLargura">Largura *</label>
+        <select id="fmLargura"></select>
+      </div>
+      <div>
+        <label for="fmEsp">Espessura *</label>
+        <select id="fmEsp"><option value="0.45">0,45 mm</option><option value="1" selected>1 mm</option><option value="2">2 mm</option><option value="3">3 mm</option></select>
+      </div>
+    </div>
+    <div id="fmOutraWrap" hidden>
+      <label for="fmOutra">Largura exata (mm)</label>
+      <input id="fmOutra" type="number" min="80" step="1" placeholder="Ex: 100">
+    </div>
+    <label for="fmCor">Cor da fita *</label>
+    <input id="fmCor" list="coresList" placeholder="Ex: Branco TX">
+    <div class="row3">
+      <div>
+        <label for="fmRolos">Rolos</label>
+        <input id="fmRolos" type="number" min="0" step="1" inputmode="numeric" placeholder="0">
+      </div>
+      <div>
+        <label for="fmPorRolo">m por rolo</label>
+        <input id="fmPorRolo" type="number" min="0" step="1" inputmode="decimal" placeholder="Ex: 50">
+      </div>
+      <div>
+        <label for="fmMetros">Total (m) *</label>
+        <input id="fmMetros" type="number" min="0" step="0.1" inputmode="decimal" placeholder="0">
+      </div>
+    </div>
+    <div class="row2">
+      <div>
+        <label for="fmData">Data *</label>
+        <input id="fmData" type="date">
+      </div>
+      <div id="fmNfWrap">
+        <label for="fmNf">Nota fiscal</label>
+        <input id="fmNf" placeholder="Nº da NF">
+      </div>
+    </div>
+    <label for="fmOrigem" id="fmOrigemLabel">Fornecedor / origem</label>
+    <input id="fmOrigem">
+    <label for="fmObs">Observações</label>
+    <textarea id="fmObs" placeholder="Opcional"></textarea>
+    <div id="fmErro" hidden style="color:var(--st-cancelado);font-size:14px;margin-top:12px;padding:8px 10px;border:1px solid var(--st-cancelado);border-radius:8px"></div>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" id="fmCancelar">Cancelar</button>
+      <button class="btn btn-save" id="fmSalvar">Registrar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="movModalBg">
+  <div class="modal">
+    <h2 id="movModalTitulo">Entrada de chapas</h2>
+    <label>Cor do MDF *</label>
+    <input id="mCor" list="coresList" placeholder="Ex: Branco TX">
+    <div class="row2">
+      <div>
+        <label>Espessura</label>
+        <select id="mEsp"><option value="">—</option><option value="3">3 mm</option><option value="6">6 mm</option><option value="9">9 mm</option><option value="12">12 mm</option><option value="15">15 mm</option><option value="18">18 mm</option><option value="20">20 mm</option><option value="25">25 mm</option></select>
+      </div>
+      <div>
+        <label>Quantidade de chapas *</label>
+        <input id="mQtd" type="number" min="1" step="1" placeholder="0">
+      </div>
+    </div>
+    <div class="row2">
+      <div>
+        <label>Data *</label>
+        <input id="mData" type="date">
+      </div>
+      <div id="mNfWrap">
+        <label>Nota fiscal</label>
+        <input id="mNf" placeholder="Nº da NF">
+      </div>
+    </div>
+    <label id="mOrigemLabel">Fornecedor / origem</label>
+    <input id="mOrigem" placeholder="">
+    <label>Observações</label>
+    <textarea id="mObs" placeholder="Opcional"></textarea>
+    <div id="movErro" style="display:none;color:var(--st-cancelado);font-size:14px;margin-top:12px;padding:8px 10px;border:1px solid var(--st-cancelado);border-radius:8px"></div>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" id="movCancelar">Cancelar</button>
+      <button class="btn btn-save" id="movSalvar">Registrar</button>
+    </div>
+  </div>
+</div>
+<datalist id="coresList"></datalist>
+
+<div class="dlg-bg" id="avisoBg" hidden>
+  <div class="dlg" role="dialog" aria-modal="true">
+    <h2 style="margin:0 0 6px;font-size:24px;color:var(--gold)">Status atualizado</h2>
+    <p id="avisoMsg" style="font-size:16px;margin-bottom:12px"></p>
+    <pre id="avisoTexto" style="white-space:pre-wrap;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:13px;max-height:200px;overflow:auto;font-family:'Barlow Condensed',sans-serif;margin:0 0 12px"></pre>
+    <a class="btn-wa" id="avisoLink" href="#" target="_blank" rel="noopener">Enviar aviso pelo WhatsApp</a>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" id="avisoFechar">Agora não</button>
+    </div>
+  </div>
+</div>
+
+<div class="dlg-bg" id="dlgBg" hidden>
+  <div class="dlg" role="dialog" aria-modal="true">
+    <p id="dlgMsg"></p>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" id="dlgCancelar">Cancelar</button>
+      <button class="btn btn-save" id="dlgOk">OK</button>
+    </div>
+  </div>
+</div>
+
+<div class="dlg-bg" id="bkBg" hidden>
+  <div class="dlg" role="dialog" aria-modal="true">
+    <h2 style="margin:0 0 6px;font-size:24px;color:var(--gold)">Backup dos dados</h2>
+    <p style="font-size:15px;color:var(--dim, var(--text-dim));margin-bottom:12px">O backup é um arquivo com todas as ordens de serviço e todas as movimentações do estoque. Guarde no computador, no Google Drive ou no e-mail.</p>
+    <div id="bkUltimo" style="font-size:14px;color:var(--text-dim);margin-bottom:12px"></div>
+    <button class="btn btn-save" id="bkBaixar" style="width:100%">Baixar backup agora</button>
+    <div style="border-top:1px solid var(--border);margin:16px 0 12px"></div>
+    <div style="font-size:15px;font-weight:700;margin-bottom:4px">Restaurar de um backup</div>
+    <div style="font-size:14px;color:var(--text-dim);margin-bottom:8px">Use só se algo foi apagado ou alterado por engano. As OS do arquivo voltam como estavam no dia do backup; OS criadas depois continuam no app.</div>
+    <input type="file" id="bkArquivo" accept=".json,application/json">
+    <div id="bkStatus" style="font-size:14px;margin-top:10px;min-height:18px"></div>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" id="bkFechar">Fechar</button>
+      <button class="btn btn-delete" id="bkRestaurar" disabled style="opacity:.5">Restaurar</button>
+    </div>
+  </div>
+</div>
+
+<div class="dlg-bg" id="impBg" hidden>
+  <div class="dlg" role="dialog" aria-modal="true">
+    <h2 style="margin:0 0 6px;font-size:24px;color:var(--gold)">Importar pedido de loja</h2>
+    <p style="font-size:14px;color:var(--text-dim);margin-bottom:10px">Cole a mensagem do pedido que a loja enviou pelo WhatsApp. Os campos da nova OS são preenchidos para você conferir e salvar.</p>
+    <textarea id="impTexto" placeholder="*PEDIDO iFC3D FORJA*&#10;Pedido: PD-...&#10;Loja: ..."></textarea>
+    <div class="imp-erro" id="impErro" hidden></div>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" id="impCancelar">Cancelar</button>
+      <button class="btn btn-save" id="impOk">Criar OS</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h2 id="modalTitle">Nova Ordem de Serviço</h2>
+    <input type="hidden" id="fId">
+    <label>Nome da Loja *</label>
+    <input id="fCliente" list="lojasList" placeholder="Loja solicitante" required>
+    <datalist id="lojasList">
+      <option value="ARQ. Iula">
+      <option value="Lojas - Grupo Realizze">
+    </datalist>
+    <div class="row2">
+      <div>
+        <label>Data da Solicitação *</label>
+        <input id="fDataSolicitacao" type="date" required>
+      </div>
+      <div>
+        <label>Horário da Solicitação *</label>
+        <input id="fHoraSolicitacao" type="time" required>
+      </div>
+    </div>
+    <div class="row2">
+      <div>
+        <label for="fClienteFinal">Cliente da loja</label>
+        <input id="fClienteFinal" placeholder="Nome do cliente final">
+      </div>
+      <div>
+        <label for="fEtiqueta">Cor da etiqueta</label>
+        <div class="etq-sel"><span class="etq-cor" id="etqPreview" style="background:transparent;box-shadow:inset 0 0 0 1px var(--border)"></span>
+        <select id="fEtiqueta"><option value="">—</option><option value="Verde-limão">Verde-limão</option><option value="Vermelho">Vermelho</option><option value="Roxo">Roxo</option><option value="Amarelo">Amarelo</option><option value="Azul">Azul</option><option value="Azul-claro">Azul-claro</option><option value="Branco">Branco</option><option value="Laranja">Laranja</option><option value="Laranja-claro">Laranja-claro</option><option value="Verde">Verde</option></select></div>
+      </div>
+    </div>
+    <label>Contato (WhatsApp/telefone)</label>
+    <input id="fContato" placeholder="(15) 90000-0000">
+    <div class="row2">
+      <div>
+        <label>Tecnologia</label>
+        <select id="fTecnologia">
+          <option>CNC Nesting</option>
+          <option>Coladeira CNC</option>
+          <option>CNC Furo Topo</option>
+          <option>Fita de Borda</option>
+          <option>Impressão 3D</option>
+          <option>Corte a Laser CO2</option>
+          <option>Solda a Laser</option>
+          <option>Galvanoplastia</option>
+          <option>Outro</option>
+        </select>
+      </div>
+      <div>
+        <label>Prazo</label>
+        <input id="fPrazo" type="date">
+      </div>
+    </div>
+    <label>Descrição do serviço</label>
+    <textarea id="fDescricao" placeholder="O que será produzido"></textarea>
+    <label>Ambiente</label>
+    <input id="fAmbiente" placeholder="Cozinha, quarto, sala...">
+    <label>Material</label>
+    <input id="fMaterial" placeholder="MDF, Inox, PLA...">
+
+    <div class="secao">
+      <div class="secao-titulo">Chapas e Sobras</div>
+      <div id="matList"></div>
+      <button type="button" class="btn-add-sobra" id="btnAddMat">+ Adicionar chapa (outra cor ou aplicação)</button>
+      <div class="fita-total" id="matTotal"></div>
+      <input type="hidden" id="fCorMdf"><input type="hidden" id="fEspessura"><input type="hidden" id="fChapas"><input type="hidden" id="fChapasRecebidas">
+      <div id="saldoChapas" hidden></div><div id="estoqueHint" hidden></div>
+      <label>Sobras (retalhos aproveitáveis)</label>
+      <div id="sobrasList"></div>
+      <button type="button" class="btn-add-sobra" id="btnAddSobra">+ Adicionar sobra</button>
+      <label>Destino das sobras</label>
+      <select id="fDestinoSobras">
+        <option value="">—</option>
+        <option>Devolver à loja</option>
+        <option>Estoque iFC3D</option>
+        <option>Descarte</option>
+      </select>
+    </div>
+    <div class="secao">
+      <div class="secao-titulo">Controle de Fita de Borda</div>
+      <div id="fitasList"></div>
+      <button type="button" class="btn-add-sobra" id="btnAddFita">+ Adicionar fita</button>
+      <div class="fita-total" id="fitaTotal"></div>
+    </div>
+    <label>Responsável</label>
+    <input id="fResponsavel" list="colaboradoresList" placeholder="Quem está executando">
+    <datalist id="colaboradoresList">
+      <option value="Fabrício">
+      <option value="Guilherme">
+      <option value="Thomaz">
+    </datalist>
+    <label>Status</label>
+    <div class="status-select-row" id="statusRow"></div>
+    <div class="hist" id="histStatus" hidden></div>
+    <div style="margin-top:10px">
+      <a class="btn-wa" id="btnAvisarLoja" href="#" target="_blank" rel="noopener">Avisar a loja do andamento (WhatsApp)</a>
+      <div class="wa-hint" id="waHint"></div>
+    </div>
+    <label>Observações</label>
+    <textarea id="fObs" placeholder="Notas internas"></textarea>
+    <div class="terceiro-box">
+      <input type="checkbox" id="fTerceiro" style="width:auto">
+      <label for="fTerceiro">Serviço de terceiros prestado à iFC3D</label>
+    </div>
+    <div id="fornecedorWrap" style="display:none">
+      <label>Nome do Fornecedor/Terceiro *</label>
+      <input id="fFornecedor" placeholder="Empresa terceirizada">
+    </div>
+    <div id="modalError" style="display:none;color:var(--st-cancelado);font-size:14px;margin-top:12px;padding:8px 10px;border:1px solid var(--st-cancelado);border-radius:8px"></div>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" id="btnCancel">Cancelar</button>
+      <button class="btn btn-save" id="btnSave">Salvar</button>
+    </div>
+    <div class="modal-actions" id="deleteRow" style="display:none">
+      <button class="btn btn-cancel" id="btnPdfOs" style="color:var(--gold);border-color:var(--gold-dim)">Ficha em PDF</button>
+      <button class="btn btn-delete" id="btnDelete">Excluir Ordem</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script>
+const STATUSES = [
+  { key: "Aguardando", color: "var(--st-aguardando)" },
+  { key: "Em Produção", color: "var(--st-producao)" },
+  { key: "Concluído", color: "var(--st-concluido)" },
+  { key: "Entregue", color: "var(--st-entregue)" },
+  { key: "Cancelado", color: "var(--st-cancelado)" },
+];
+function statusColor(s) { const f = STATUSES.find(x => x.key === s); return f ? f.color : "var(--st-aguardando)"; }
+
+function computeAvaliacao(o) {
+  if (o.status === 'Cancelado') return null;
+  if (!o.prazo) return { label: 'Sem prazo definido', color: 'var(--text-dim)' };
+  const prazoTs = new Date(o.prazo + 'T23:59:59').getTime();
+  const checkTs = o.entregueEm || o.concluidoEm;
+  if (!checkTs) return { label: 'Em andamento', color: 'var(--st-aguardando)' };
+  return checkTs <= prazoTs
+    ? { label: 'No prazo', color: 'var(--st-concluido)' }
+    : { label: 'Atrasado', color: 'var(--st-cancelado)' };
+}
+
+let db = null;
+let ordens = [];
+let activeFilter = "Todas";
+let editingId = null;
+
+const listEl = document.getElementById('list');
+const filtersEl = document.getElementById('filters');
+const statusRow = document.getElementById('statusRow');
+const statusNote = document.getElementById('statusNote');
+let currentStatus = "Aguardando";
+
+function renderFilters() {
+  const opts = ["Todas", ...STATUSES.map(s => s.key)];
+  filtersEl.innerHTML = opts.map(o =>
+    `<button class="chip ${o === activeFilter ? 'active' : ''}" data-f="${o}">${o}</button>`
+  ).join('');
+  filtersEl.querySelectorAll('.chip').forEach(el => {
+    el.onclick = () => { activeFilter = el.dataset.f; renderFilters(); renderList(); };  });
+}
+
+function renderStatusRow(selected) {
+  statusRow.innerHTML = STATUSES.map(s =>
+    `<button type="button" class="status-opt ${s.key === selected ? 'sel' : ''}" data-s="${s.key}" style="color:${s.color}">${s.key}</button>`
+  ).join('');
+  statusRow.querySelectorAll('.status-opt').forEach(el => {
+    el.onclick = () => { currentStatus = el.dataset.s; renderStatusRow(currentStatus); };
+  });
+}
+
+function fmtDate(d) {
+  if (!d) return '—';
+  const dt = new Date(d + 'T00:00:00');
+  if (isNaN(dt)) return d;
+  return dt.toLocaleDateString('pt-BR');
+}
+
+function fmtDateTime(ts) {
+  if (!ts) return '—';
+  const dt = new Date(ts);
+  const dd = dt.toLocaleDateString('pt-BR');
+  const hh = dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  return `${dd} ${hh}`;
+}
+
+function renderList() {
+  const filtered = activeFilter === "Todas" ? ordens : ordens.filter(o => o.status === activeFilter);
+  if (filtered.length === 0) {
+    listEl.innerHTML = `<div class="empty">Nenhuma ordem de serviço${activeFilter !== 'Todas' ? ' em "' + activeFilter + '"' : ''} ainda.</div>`;
+    return;
+  }
+  listEl.innerHTML = filtered.map(o => {
+    const av = computeAvaliacao(o);
+    return `
+    <div class="card" data-id="${o.id}">
+      <div class="card-top">
+        <div>
+          <div class="card-num">${o.numero || ''}</div>
+          <div class="card-cliente">${esc(o.cliente || 'Sem nome')}</div>
+          ${(o.clienteFinal || o.etiqueta) ? `<div class="card-final">${o.etiqueta ? `<span class="etq-cor" style="background:${ETQ_CORES[o.etiqueta] || '#999'}" title="Etiqueta ${esc(o.etiqueta)}"></span>` : ''}${o.clienteFinal ? 'Cliente: ' + esc(o.clienteFinal) : 'Etiqueta ' + esc(o.etiqueta)}</div>` : ''}
+        </div>
+        <div style="text-align:right">
+          <span class="badge" style="background:${statusColor(o.status)}">${o.status}</span>
+          <div style="font-size:11px;color:var(--text-dim);margin-top:3px">${fmtDateTime(o.statusAtualizadoEm)}</div>
+        </div>
+      </div>
+      <div class="card-meta">${esc(o.tecnologia || '')} ${o.ambiente ? '· ' + esc(o.ambiente) : ''} ${coresDaOS(o).length ? '· MDF ' + esc(coresDaOS(o).join(' / ')) : ''} ${o.terceirizado ? `<span class="tag-terceiro">Terceiro: ${esc(o.fornecedor || '')}</span>` : ''}</div>
+      ${(o.chapas != null || o.chapasRecebidas != null || totalSobras(o)) ? `<div class="card-meta" style="margin-top:4px">Chapas: ${o.chapasRecebidas ?? '—'} receb. · ${o.chapas ?? '—'} usadas${(o.chapasRecebidas != null && o.chapas != null) ? ' · saldo ' + (o.chapasRecebidas - o.chapas) : ''}${totalSobras(o) ? ' · ' + totalSobras(o) + ' sobra(s)' : ''}${o.destinoSobras ? ' → ' + esc(o.destinoSobras) : ''}</div>` : ''}
+      <div class="card-bottom">
+        <span>Prazo: ${fmtDate(o.prazo)}</span>
+        ${av ? `<span class="badge" style="background:${av.color}">${av.label}</span>` : ''}
+      </div>
+    </div>
+  `;
+  }).join('');
+  listEl.querySelectorAll('.card').forEach(el => {
+    el.onclick = () => openEdit(el.dataset.id);
+  });
+}
+
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function genNumero() {
+  const d = new Date();
+  const ymd = d.toISOString().slice(2,10).replace(/-/g,'');
+  const rnd = Math.floor(Math.random()*900+100);
+  return `OS-${ymd}-${rnd}`;
+}
+
+function openNew() {
+  editingId = null;
+  document.getElementById('modalTitle').textContent = 'Nova Ordem de Serviço';
+  document.getElementById('fId').value = '';
+  document.getElementById('fCliente').value = '';
+  const now = new Date();
+  document.getElementById('fDataSolicitacao').value = now.toISOString().slice(0,10);
+  document.getElementById('fHoraSolicitacao').value = now.toTimeString().slice(0,5);
+  document.getElementById('fContato').value = '';
+  document.getElementById('fClienteFinal').value = '';
+  document.getElementById('fEtiqueta').value = ''; atualizarEtq();
+  document.getElementById('fTecnologia').value = 'CNC Nesting';
+  document.getElementById('fPrazo').value = '';
+  document.getElementById('fDescricao').value = '';
+  document.getElementById('fAmbiente').value = '';
+  document.getElementById('fMaterial').value = '';
+  materiais = [linhaPadrao(0)]; renderMateriais();
+  document.getElementById('fDestinoSobras').value = '';
+  sobras = []; renderSobras(); updateSaldo();
+  fitas = []; renderFitas();
+  document.getElementById('fResponsavel').value = '';
+  document.getElementById('fObs').value = '';
+  document.getElementById('fTerceiro').checked = false;
+  document.getElementById('fFornecedor').value = '';
+  document.getElementById('fornecedorWrap').style.display = 'none';
+  currentStatus = 'Aguardando';
+  renderStatusRow(currentStatus);
+  document.getElementById('deleteRow').style.display = 'none';
+  document.getElementById('modalError').style.display = 'none';
+  atualizarEstoqueHint();
+  pedidoImportado = '';
+  atualizarBotaoAviso();
+  document.getElementById('modalBg').classList.add('open');
+}
+
+function openEdit(id) {
+  const o = ordens.find(x => x.id === id);
+  if (!o) return;
+  editingId = id;
+  document.getElementById('modalTitle').textContent = o.numero || 'Editar OS';
+  document.getElementById('fId').value = id;
+  document.getElementById('fCliente').value = o.cliente || '';
+  document.getElementById('fDataSolicitacao').value = o.dataSolicitacao || '';
+  document.getElementById('fHoraSolicitacao').value = o.horaSolicitacao || '';
+  document.getElementById('fContato').value = o.contato || '';
+  document.getElementById('fClienteFinal').value = o.clienteFinal || '';
+  document.getElementById('fEtiqueta').value = o.etiqueta || ''; atualizarEtq();
+  document.getElementById('fTecnologia').value = o.tecnologia || 'CNC Nesting';
+  document.getElementById('fPrazo').value = o.prazo || '';
+  document.getElementById('fDescricao').value = o.descricao || '';
+  document.getElementById('fAmbiente').value = o.ambiente || '';
+  document.getElementById('fMaterial').value = o.material || '';
+  materiais = materiaisDaOS(o); if (!materiais.length) materiais = [linhaPadrao(0)]; renderMateriais();
+  document.getElementById('fDestinoSobras').value = o.destinoSobras || '';
+  sobras = (o.sobras || []).map(x => ({ ...x })); renderSobras(); updateSaldo();
+  fitas = fitasDaOS(o); renderFitas();
+  document.getElementById('fResponsavel').value = o.responsavel || '';
+  document.getElementById('fObs').value = o.observacoes || '';
+  document.getElementById('fTerceiro').checked = !!o.terceirizado;
+  document.getElementById('fFornecedor').value = o.fornecedor || '';
+  document.getElementById('fornecedorWrap').style.display = o.terceirizado ? 'block' : 'none';
+  currentStatus = o.status || 'Aguardando';
+  renderStatusRow(currentStatus);
+  document.getElementById('deleteRow').style.display = 'flex';
+  document.getElementById('btnDelete').hidden = !ehAdmin;
+  document.getElementById('modalError').style.display = 'none';
+  atualizarEstoqueHint();
+  atualizarBotaoAviso();
+  document.getElementById('modalBg').classList.add('open');
+}
+
+function closeModal() { document.getElementById('modalBg').classList.remove('open'); }
+
+async function save() {
+  if (!db) {
+    const errEl = document.getElementById('modalError');
+    errEl.textContent = 'Sem conexão com o armazenamento compartilhado. Feche e reabra o link.';
+    errEl.style.display = 'block';
+    return;
+  }
+  const loja = document.getElementById('fCliente').value.trim();
+  const dataSolicitacao = document.getElementById('fDataSolicitacao').value;
+  const horaSolicitacao = document.getElementById('fHoraSolicitacao').value;
+  sincronizarCamposChapas();
+  const corMdf = document.getElementById('fCorMdf').value.trim();
+  const terceirizado = document.getElementById('fTerceiro').checked;
+  const fornecedor = document.getElementById('fFornecedor').value.trim();
+  if (!loja || !dataSolicitacao || !horaSolicitacao) {
+    await aviso('Nome da loja, data e horário da solicitação são obrigatórios.');
+    return;
+  }
+  if (!corMdf) {
+    await aviso('Informe a cor do MDF de pelo menos uma chapa.');
+    return;
+  }
+  if (terceirizado && !fornecedor) {
+    await aviso('Informe o nome do fornecedor/terceiro.');
+    return;
+  }
+  const data = {
+    cliente: loja,
+    dataSolicitacao,
+    horaSolicitacao,
+    contato: document.getElementById('fContato').value.trim(),
+    clienteFinal: document.getElementById('fClienteFinal').value.trim(),
+    etiqueta: document.getElementById('fEtiqueta').value,
+    tecnologia: document.getElementById('fTecnologia').value,
+    prazo: document.getElementById('fPrazo').value,
+    descricao: document.getElementById('fDescricao').value.trim(),
+    ambiente: document.getElementById('fAmbiente').value.trim(),
+    material: document.getElementById('fMaterial').value.trim(),
+    corMdf,
+    materiais: limparMateriais(materiais),
+    espessura: document.getElementById('fEspessura').value,
+    chapas: document.getElementById('fChapas').value !== '' ? Number(document.getElementById('fChapas').value) : null,
+    chapasRecebidas: document.getElementById('fChapasRecebidas').value !== '' ? Number(document.getElementById('fChapasRecebidas').value) : null,
+    sobras: sobras.filter(x => x.largura || x.altura).map(x => ({ largura: x.largura, altura: x.altura, qtd: x.qtd || 1 })),
+    destinoSobras: document.getElementById('fDestinoSobras').value,
+    fitas: fitas.filter(f => f.largura || f.metros).map(f => ({ largura: f.largura || '', larguraOutra: f.largura === '80+' ? (f.larguraOutra ?? null) : null, espessura: f.espessura || '', cor: (f.cor || '').trim(), metros: f.metros ?? null })),
+    fitagem: fitas.some(f => f.metros) ? Math.round(totalFitas(fitas) * 100) / 100 : null,
+    responsavel: document.getElementById('fResponsavel').value.trim(),
+    status: currentStatus,
+    observacoes: document.getElementById('fObs').value.trim(),
+    terceirizado,
+    fornecedor: terceirizado ? fornecedor : '',
+    atualizadoEm: Date.now(),
+  };
+  const original = editingId ? ordens.find(x => x.id === editingId) : null;
+  const mudouStatus = !original || original.status !== currentStatus;
+  if (mudouStatus) {
+    data.statusAtualizadoEm = Date.now();
+    data.historico = [...(original ? historicoDaOS(original) : []), { status: currentStatus, em: data.statusAtualizadoEm }];
+  }
+  if (!original && pedidoImportado) data.pedidoLoja = pedidoImportado;
+  if (currentStatus === 'Concluído' && !(original && original.concluidoEm)) {
+    data.concluidoEm = Date.now();
+  }
+  if (currentStatus === 'Entregue' && !(original && original.entregueEm)) {
+    data.entregueEm = Date.now();
+  }
+  let osId = editingId, osCompleta;
+  try {
+    if (editingId) {
+      await db.collection('ordens').doc(editingId).update(data);
+      osCompleta = { ...original, ...data };
+    } else {
+      data.numero = genNumero();
+      data.criadoEm = Date.now();
+      const ref = db.collection('ordens').doc();
+      await ref.set(data);
+      osId = ref.id;
+      osCompleta = data;
+    }
+  } catch (e) {
+    const code = e && e.code ? e.code : 'desconhecido';
+    let msg = `Não foi possível salvar (erro: ${code}).`;
+    if (code === 'invalid_argument') msg = 'Não foi possível salvar: sua permissão de acesso não permite editar (precisa ser Contribuidor ou superior no compartilhamento).';
+    if (code === 'resource_exhausted' || code === 'unavailable') msg = 'Conexão instável agora — tente salvar novamente em alguns segundos.';
+    if (code === 'quota_exceeded') msg = 'Limite de ordens de serviço armazenadas foi atingido — algumas antigas precisam ser removidas.';
+    const errEl = document.getElementById('modalError');
+    errEl.textContent = msg;
+    errEl.style.display = 'block';
+    return;
+  }
+  closeModal();
+  pedidoImportado = '';
+  try {
+    await syncMovimentosOS(osId, osCompleta);
+  } catch (e) {
+    await aviso('A OS foi salva, mas o lançamento no estoque falhou. Abra a OS e salve novamente.');
+  }
+  if (mudouStatus && original) oferecerAviso(osCompleta);
+}
+
+async function del() {
+  if (!db || !editingId) return;
+  if (!ehAdmin) { await aviso('Só o perfil Administrativo pode excluir ordens de serviço.'); return; }
+  if (!(await confirmar('Excluir esta ordem de serviço?'))) return;
+  try {
+    const idExcluido = editingId;
+    await db.collection('ordens').doc(idExcluido).delete();
+    closeModal();
+    try { await removerMovimentosOS(idExcluido); } catch (e) { await aviso('A OS foi excluída, mas o estorno no estoque falhou. Confira o estoque.'); }
+  } catch (e) {
+    statusNote.textContent = 'Não foi possível excluir agora.';
+  }
+}
+
+document.getElementById('fTerceiro').onchange = (e) => {
+  document.getElementById('fornecedorWrap').style.display = e.target.checked ? 'block' : 'none';
+};
+
+let sobras = [];
+function renderSobras() {
+  const el = document.getElementById('sobrasList');
+  el.innerHTML = sobras.map((s, i) => `
+    <div class="sobra-row">
+      <input type="number" min="0" placeholder="Larg. mm" value="${s.largura ?? ''}" data-i="${i}" data-k="largura">
+      <span class="x">×</span>
+      <input type="number" min="0" placeholder="Alt. mm" value="${s.altura ?? ''}" data-i="${i}" data-k="altura">
+      <input type="number" min="1" placeholder="Qtd" value="${s.qtd ?? ''}" data-i="${i}" data-k="qtd" style="max-width:64px">
+      <button type="button" class="btn-rm" data-rm="${i}">×</button>
+    </div>`).join('');
+  el.querySelectorAll('input').forEach(inp => {
+    inp.oninput = () => {
+      const v = inp.value === '' ? null : Number(inp.value);
+      sobras[Number(inp.dataset.i)][inp.dataset.k] = v;
+    };
+  });
+  el.querySelectorAll('[data-rm]').forEach(b => {
+    b.onclick = () => { sobras.splice(Number(b.dataset.rm), 1); renderSobras(); };
+  });
+}
+document.getElementById('btnAddSobra').onclick = () => {
+  sobras.push({ largura: null, altura: null, qtd: 1 });
+  renderSobras();
+};
+function updateSaldo() {
+  const r = document.getElementById('fChapasRecebidas').value;
+  const u = document.getElementById('fChapas').value;
+  const el = document.getElementById('saldoChapas');
+  if (r === '' || u === '') { el.textContent = '—'; el.style.color = 'var(--text)'; return; }
+  const saldo = Number(r) - Number(u);
+  el.textContent = saldo;
+  el.style.color = saldo < 0 ? 'var(--st-cancelado)' : saldo > 0 ? 'var(--gold)' : 'var(--st-concluido)';
+}
+document.getElementById('fChapasRecebidas').oninput = updateSaldo;
+document.getElementById('fChapas').oninput = updateSaldo;
+function totalSobras(o) {
+  return (o.sobras || []).reduce((t, s) => t + (Number(s.qtd) || 0), 0);
+}
+function sobrasTexto(o) {
+  return (o.sobras || []).map(s => `${s.qtd || 1}x ${s.largura || '?'}x${s.altura || '?'}mm`).join('; ');
+}
+
+const COLAB_TECNOLOGIA = { 'Fabrício': 'CNC Nesting', 'Guilherme': 'Coladeira CNC', 'Thomaz': 'CNC Furo Topo' };
+document.getElementById('fResponsavel').addEventListener('change', (e) => {
+  const t = COLAB_TECNOLOGIA[e.target.value.trim()];
+  if (t) document.getElementById('fTecnologia').value = t;
+});
+
+function renderDash() {
+  const dash = document.getElementById('dash');
+  const total = ordens.length;
+  dash.innerHTML = STATUSES.map(s => {
+    const count = ordens.filter(o => o.status === s.key).length;
+    const pct = total ? Math.round((count / total) * 100) : 0;
+    return `
+      <div class="dash-row">
+        <span class="dash-label">${s.key}</span>
+        <div class="dash-bar-bg"><div class="dash-bar-fill" style="width:${pct}%;background:${s.color}"></div></div>
+        <span class="dash-count">${count}</span>
+      </div>`;
+  }).join('');
+}
+
+// ===== RELATÓRIO PDF =====
+function pdfTxt(v) {
+  if (v === null || v === undefined || v === '') return '-';
+  return String(v).replace(/[—–]/g, '-').replace(/→/g, '>');
+}
+function avaliacaoTxt(o) { const a = computeAvaliacao(o); return a ? a.label : 'Cancelado'; }
+
+async function exportPdf(lista, titulo, nomeArquivo) {
+  if (!window.jspdf || !window.jspdf.jsPDF) { statusNote.textContent = 'Gerador de PDF não carregou. Recarregue a página.'; return; }
+  if (!lista.length) { await aviso('Nenhuma ordem de serviço para exportar.'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const W = 210, M = 14;
+  const GOLD = [201, 162, 75], DARK = [24, 24, 24], GREY = [110, 106, 98], LIGHT = [246, 243, 236];
+  const STATUS_RGB = { 'Aguardando': [122,122,122], 'Em Produção': [217,138,43], 'Concluído': [74,157,92], 'Entregue': [61,127,191], 'Cancelado': [179,66,60] };
+  const AV_RGB = { 'No prazo': [74,157,92], 'Atrasado': [179,66,60], 'Em andamento': [122,122,122], 'Sem prazo definido': [150,150,150], 'Cancelado': [179,66,60] };
+  const agora = new Date();
+  const geradoEm = agora.toLocaleDateString('pt-BR') + ' às ' + agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+  function cabecalho() {
+    doc.setFillColor(...DARK); doc.rect(0, 0, W, 26, 'F');
+    doc.setFillColor(...GOLD); doc.rect(0, 26, W, 1.2, 'F');
+    doc.setTextColor(...GOLD); doc.setFont('helvetica', 'bold'); doc.setFontSize(20);
+    doc.text('iFC3D FORJA', M, 13);
+    doc.setTextColor(230, 225, 215); doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+    doc.text('Centro de Fabricação Digital  |  Sorocaba - SP', M, 19.5);
+    doc.setFontSize(11); doc.setFont('helvetica', 'bold'); doc.setTextColor(255, 255, 255);
+    doc.text(titulo.toUpperCase(), W - M, 13, { align: 'right' });
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(200, 195, 185);
+    doc.text('Emitido em ' + geradoEm, W - M, 19.5, { align: 'right' });
+  }
+  function secao(t, y) {
+    doc.setFillColor(...GOLD); doc.rect(M, y - 4, 1.4, 5.5, 'F');
+    doc.setTextColor(...DARK); doc.setFont('helvetica', 'bold'); doc.setFontSize(11.5);
+    doc.text(t.toUpperCase(), M + 4, y);
+    return y + 4;
+  }
+  const baseTable = {
+    margin: { left: M, right: M, top: 34, bottom: 18 },
+    styles: { font: 'helvetica', fontSize: 8.5, cellPadding: 2, textColor: [40, 38, 34], lineColor: [222, 216, 204], lineWidth: 0.2 },
+    headStyles: { fillColor: DARK, textColor: GOLD, fontStyle: 'bold' },
+    alternateRowStyles: { fillColor: LIGHT },
+    didDrawPage: cabecalho,
+  };
+
+  // ---- RESUMO GERAL (só quando mais de uma OS) ----
+  if (lista.length > 1) {
+    cabecalho();
+    let y = secao('Resumo geral', 38);
+    const total = lista.length;
+    const av = lista.map(avaliacaoTxt);
+    const noPrazo = av.filter(a => a === 'No prazo').length;
+    const atrasado = av.filter(a => a === 'Atrasado').length;
+    const finalizadas = noPrazo + atrasado;
+    const assert = finalizadas ? Math.round(noPrazo / finalizadas * 100) + '%' : '-';
+    const somaRec = lista.reduce((t, o) => t + (Number(o.chapasRecebidas) || 0), 0);
+    const somaUso = lista.reduce((t, o) => t + (Number(o.chapas) || 0), 0);
+    const somaSobras = lista.reduce((t, o) => t + totalSobras(o), 0);
+    const somaFita = lista.reduce((t, o) => t + (Number(o.fitagem) || 0), 0);
+    const kpis = [
+      ['Ordens de serviço', String(total)],
+      ['Assertividade de prazo', assert],
+      ['Chapas usadas / recebidas', somaUso + ' / ' + somaRec],
+      ['Sobras registradas', String(somaSobras)],
+      ['Fitagem de borda', somaFita.toFixed(2).replace('.', ',') + ' m'],
+      ['Entregas atrasadas', String(atrasado)],
+    ];
+    const bw = (W - 2 * M - 2 * 4) / 3, bh = 18;
+    kpis.forEach((k, i) => {
+      const x = M + (i % 3) * (bw + 4), yy = y + Math.floor(i / 3) * (bh + 4);
+      doc.setFillColor(...LIGHT); doc.setDrawColor(222, 216, 204); doc.roundedRect(x, yy, bw, bh, 2, 2, 'FD');
+      doc.setTextColor(...GREY); doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+      doc.text(k[0].toUpperCase(), x + 4, yy + 6);
+      doc.setTextColor(...DARK); doc.setFont('helvetica', 'bold'); doc.setFontSize(15);
+      doc.text(k[1], x + 4, yy + 14);
+    });
+    y += 2 * (bh + 4) + 6;
+
+    // barras por status
+    y = secao('Distribuição por status', y);
+    STATUSES.forEach(s => {
+      const c = lista.filter(o => o.status === s.key).length;
+      const pct = total ? c / total : 0;
+      doc.setTextColor(...GREY); doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+      doc.text(s.key, M, y + 3.6);
+      doc.setFillColor(236, 232, 224); doc.rect(M + 30, y, 120, 5, 'F');
+      if (c) { doc.setFillColor(...STATUS_RGB[s.key]); doc.rect(M + 30, y, Math.max(1.5, 120 * pct), 5, 'F'); }
+      doc.setTextColor(...DARK); doc.setFont('helvetica', 'bold');
+      doc.text(c + '  (' + Math.round(pct * 100) + '%)', M + 154, y + 3.6);
+      y += 8;
+    });
+    y += 4;
+
+    y = secao('Relação de ordens de serviço', y);
+    doc.autoTable({
+      ...baseTable,
+      startY: y,
+      head: [['Nº OS', 'Loja / Cliente', 'Tecnologia', 'Status', 'Prazo', 'Avaliação']],
+      body: lista.map(o => [pdfTxt(o.numero), pdfTxt(o.cliente), pdfTxt(o.tecnologia), pdfTxt(o.status), fmtDate(o.prazo), avaliacaoTxt(o)]),
+      columnStyles: { 0: { cellWidth: 28, fontStyle: 'bold' }, 4: { cellWidth: 20 }, 5: { cellWidth: 27 } },
+      didParseCell: (d) => {
+        if (d.section !== 'body') return;
+        if (d.column.index === 3 && STATUS_RGB[d.cell.raw]) { d.cell.styles.textColor = STATUS_RGB[d.cell.raw]; d.cell.styles.fontStyle = 'bold'; }
+        if (d.column.index === 5 && AV_RGB[d.cell.raw]) { d.cell.styles.textColor = AV_RGB[d.cell.raw]; d.cell.styles.fontStyle = 'bold'; }
+      },
+    });
+  }
+
+  // ---- FICHA DETALHADA DE CADA OS ----
+  lista.forEach((o, idx) => {
+    if (lista.length > 1 || idx > 0) doc.addPage();
+    cabecalho();
+    let y = 36;
+    // faixa de identificação
+    doc.setFillColor(...LIGHT); doc.setDrawColor(...GOLD); doc.setLineWidth(0.4);
+    doc.roundedRect(M, y, W - 2 * M, 20, 2, 2, 'FD');
+    doc.setTextColor(...GREY); doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+    doc.text('ORDEM DE SERVIÇO', M + 5, y + 6.5);
+    doc.setTextColor(...DARK); doc.setFont('helvetica', 'bold'); doc.setFontSize(16);
+    doc.text(pdfTxt(o.numero), M + 5, y + 15);
+    const st = o.status || 'Aguardando';
+    const stW = doc.getTextWidth(st) * 0.62 + 12;
+    doc.setFontSize(10);
+    const stWidth = doc.getTextWidth(st) + 10;
+    doc.setFillColor(...(STATUS_RGB[st] || GREY));
+    doc.roundedRect(W - M - 5 - stWidth, y + 4, stWidth, 7, 3.5, 3.5, 'F');
+    doc.setTextColor(255, 255, 255); doc.text(st, W - M - 5 - stWidth / 2, y + 9, { align: 'center' });
+    const av = avaliacaoTxt(o);
+    doc.setFontSize(8.5); doc.setTextColor(...(AV_RGB[av] || GREY));
+    doc.text('Avaliação: ' + av, W - M - 5, y + 16, { align: 'right' });
+    y += 28;
+
+    const kv = (rows) => ({
+      ...baseTable,
+      startY: y,
+      theme: 'grid',
+      body: rows,
+      showHead: 'never',
+      columnStyles: { 0: { cellWidth: 48, fontStyle: 'bold', fillColor: LIGHT, textColor: GREY }, 1: { fillColor: [255, 255, 255] } },
+      alternateRowStyles: {},
+    });
+
+    y = secao('Dados da solicitação', y);
+    doc.autoTable(kv([
+      ['Loja / Cliente', pdfTxt(o.cliente)],
+      ['Contato', pdfTxt(o.contato)],
+      ['Cliente da loja', pdfTxt(o.clienteFinal)],
+      ['Cor da etiqueta', pdfTxt(o.etiqueta)],
+      ['Data da solicitação', fmtDate(o.dataSolicitacao) + (o.horaSolicitacao ? ' às ' + o.horaSolicitacao : '')],
+      ['Prazo de entrega', fmtDate(o.prazo)],
+      ...(o.terceirizado ? [['Serviço de terceiro', pdfTxt(o.fornecedor)]] : []),
+    ]));
+    y = doc.lastAutoTable.finalY + 8;
+
+    y = secao('Especificação da produção', y);
+    doc.autoTable(kv([
+      ['Tecnologia', pdfTxt(o.tecnologia)],
+      ['Responsável', pdfTxt(o.responsavel)],
+      ['Ambiente', pdfTxt(o.ambiente)],
+      ['Material', pdfTxt(o.material)],
+      ['Descrição do serviço', pdfTxt(o.descricao)],
+    ]));
+    y = doc.lastAutoTable.finalY + 8;
+
+    y = secao('Fita de borda', y);
+    const fl = fitasDaOS(o);
+    if (fl.length) {
+      doc.autoTable({
+        ...baseTable, startY: y,
+        head: [['#', 'Largura', 'Espessura', 'Uso indicado', 'Cor', 'Metros']],
+        body: fl.map((f, i) => { const inf = FITA_LARGURAS.find(l => l.v === f.largura); return [i + 1, pdfTxt(larguraFitaTxt(f)), f.espessura ? fmtEspFita(f.espessura) : '-', inf ? pdfTxt(inf.uso) : '-', pdfTxt(f.cor || corParaFita(materiaisDaOS(o)).cor), f.metros != null ? String(f.metros).replace('.', ',') + ' m' : '-']; }),
+        foot: [['', '', '', '', 'TOTAL', fmtNum(totalFitas(fl)).replace('.', ',') + ' m']],
+        footStyles: { fillColor: [70, 66, 58], textColor: [255, 255, 255], fontStyle: 'bold' },
+        columnStyles: { 0: { cellWidth: 8, halign: 'center' }, 1: { cellWidth: 24 }, 2: { cellWidth: 22 }, 5: { cellWidth: 22, halign: 'right', fontStyle: 'bold' } },
+      });
+      y = doc.lastAutoTable.finalY + 8;
+    } else {
+      doc.setFont('helvetica', 'italic'); doc.setFontSize(8.5); doc.setTextColor(...GREY);
+      doc.text('Nenhuma fita de borda registrada.', M, y + 3); y += 10;
+    }
+
+    y = secao('Controle de chapas e sobras', y);
+    const mats = materiaisDaOS(o);
+    if (mats.length) {
+      doc.autoTable({
+        ...baseTable, startY: y,
+        head: [['Aplicação', 'Cor do MDF', 'Espessura', 'Chapas usadas', 'Recebidas da loja']],
+        body: mats.map(m => [pdfTxt(m.aplicacao), pdfTxt(m.cor), m.espessura ? m.espessura + ' mm' : '-', pdfTxt(m.qtd), pdfTxt(m.recebidas)]),
+        columnStyles: { 0: { fontStyle: 'bold' }, 2: { halign: 'center' }, 3: { halign: 'center' }, 4: { halign: 'center' } },
+      });
+      y = doc.lastAutoTable.finalY + 3;
+    }
+    const saldo = (o.chapasRecebidas != null && o.chapas != null) ? String(o.chapasRecebidas - o.chapas) : '-';
+    doc.autoTable({
+      ...baseTable, startY: y,
+      head: [['Total recebidas', 'Total usadas', 'Saldo', 'Destino das sobras']],
+      body: [[pdfTxt(o.chapasRecebidas), pdfTxt(o.chapas), saldo, pdfTxt(o.destinoSobras)]],
+      styles: { ...baseTable.styles, halign: 'center' },
+    });
+    y = doc.lastAutoTable.finalY + 3;
+    const sb = o.sobras || [];
+    if (sb.length) {
+      doc.autoTable({
+        ...baseTable, startY: y,
+        head: [['#', 'Largura (mm)', 'Altura (mm)', 'Quantidade', 'Área total (m²)']],
+        body: sb.map((s, i) => [i + 1, pdfTxt(s.largura), pdfTxt(s.altura), pdfTxt(s.qtd),
+          (s.largura && s.altura) ? ((s.largura * s.altura * (s.qtd || 1)) / 1e6).toFixed(3).replace('.', ',') : '-']),
+        styles: { ...baseTable.styles, halign: 'center' },
+        headStyles: { fillColor: [70, 66, 58], textColor: [255, 255, 255], fontStyle: 'bold' },
+      });
+      y = doc.lastAutoTable.finalY + 8;
+    } else {
+      doc.setFont('helvetica', 'italic'); doc.setFontSize(8.5); doc.setTextColor(...GREY);
+      doc.text('Nenhuma sobra registrada.', M, y + 3); y += 10;
+    }
+
+    y = secao('Histórico', y);
+    doc.autoTable(kv([
+      ['Abertura da OS', fmtDateTime(o.criadoEm)],
+      ['Última mudança de status', fmtDateTime(o.statusAtualizadoEm) + '  (' + st + ')'],
+      ['Concluída em', fmtDateTime(o.concluidoEm)],
+      ['Entregue em', fmtDateTime(o.entregueEm)],
+    ]));
+    y = doc.lastAutoTable.finalY + 8;
+
+    if (o.observacoes) {
+      y = secao('Observações', y);
+      doc.autoTable(kv([['Observações', pdfTxt(o.observacoes)]]));
+      y = doc.lastAutoTable.finalY + 8;
+    }
+
+    // assinaturas
+    if (y > 250) { doc.addPage(); cabecalho(); y = 40; }
+    y = Math.max(y + 10, 255);
+    doc.setDrawColor(...GREY); doc.setLineWidth(0.3);
+    const colW = (W - 2 * M - 16) / 2;
+    [['Responsável pela produção', o.responsavel], ['Recebido / conferido por', '']].forEach((a, i) => {
+      const x = M + i * (colW + 16);
+      doc.line(x, y, x + colW, y);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(...GREY);
+      doc.text(a[0] + (a[1] ? ' - ' + a[1] : ''), x + colW / 2, y + 4.5, { align: 'center' });
+      doc.text('Data: ____/____/______', x + colW / 2, y + 9.5, { align: 'center' });
+    });
+  });
+
+  // rodapé com paginação
+  const n = doc.getNumberOfPages();
+  for (let i = 1; i <= n; i++) {
+    doc.setPage(i);
+    doc.setDrawColor(222, 216, 204); doc.setLineWidth(0.3); doc.line(M, 285, W - M, 285);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(...GREY);
+    doc.text('iFC3D Forja - Documento gerado pelo sistema de Ordens de Serviço para arquivo', M, 290);
+    doc.text('Página ' + i + ' de ' + n, W - M, 290, { align: 'right' });
+  }
+
+  try {
+    const downloads = await claude.use('downloads');
+    if (!downloads) { statusNote.textContent = 'Exportação indisponível nesta visualização.'; return; }
+    await downloads.save({ filename: nomeArquivo, data: doc.output('blob') });
+  } catch (e) {
+    statusNote.textContent = 'Não foi possível exportar agora.';
+  }
+}
+
+document.getElementById('btnExport').onclick = () => {
+  const lista = activeFilter === 'Todas' ? ordens : ordens.filter(o => o.status === activeFilter);
+  const d = new Date().toISOString().slice(0, 10);
+  const sufixo = activeFilter === 'Todas' ? '' : ' - ' + activeFilter;
+  exportPdf(lista, 'Relatório de OS' + sufixo, `relatorio-os-ifc3d-${d}.pdf`);
+};
+document.getElementById('btnPdfOs').onclick = () => {
+  const o = ordens.find(x => x.id === editingId);
+  if (!o) return;
+  exportPdf([o], 'Ficha de OS', `${o.numero || 'OS'}-ifc3d.pdf`);
+};
+
+
+document.getElementById('btnNew').onclick = openNew;
+document.getElementById('btnCancel').onclick = closeModal;
+document.getElementById('btnSave').onclick = save;
+document.getElementById('btnDelete').onclick = del;
+document.getElementById('modalBg').onclick = (e) => { if (e.target.id === 'modalBg') closeModal(); };
+
+// ===== ESTOQUE DE CHAPAS =====
+const STATUS_BAIXA = ['Em Produção', 'Concluído', 'Entregue'];
+let movimentos = [];
+let estoqueFiltroKey = null;
+let movTipoAtual = 'entrada';
+
+function chaveEstoque(cor, esp) { return String(cor || '').trim().toLowerCase().replace(/\s+/g, ' ') + '|' + (esp || ''); }
+function espTxt(esp) { return esp ? esp + ' mm' : 's/ esp.'; }
+function fmtNum(n) { return Number.isInteger(n) ? String(n) : String(Math.round(n * 100) / 100).replace('.', ','); }
+
+function calcularEstoque() {
+  const itens = {};
+  const item = (cor, esp) => {
+    const k = chaveEstoque(cor, esp);
+    if (!itens[k]) itens[k] = { key: k, cor: String(cor || '').trim(), esp: esp || '', entradas: 0, saidas: 0, reservado: 0, ultimo: 0 };
+    return itens[k];
+  };
+  movimentos.forEach(m => {
+    if (!m.cor) return;
+    const it = item(m.cor, m.espessura);
+    const q = Number(m.qtd) || 0;
+    if (m.tipo === 'entrada') it.entradas += q; else it.saidas += q;
+    it.ultimo = Math.max(it.ultimo, m.data || 0);
+  });
+  ordens.forEach(o => {
+    if (o.status === 'Aguardando') materiaisDaOS(o).forEach(m => { if ((m.cor || '').trim() && Number(m.qtd) > 0) item(m.cor, m.espessura).reservado += Number(m.qtd); });
+  });
+  return Object.values(itens).map(it => ({ ...it, saldo: it.entradas - it.saidas, disponivel: it.entradas - it.saidas - it.reservado }))
+    .sort((a, b) => a.cor.localeCompare(b.cor, 'pt-BR') || String(a.esp).localeCompare(String(b.esp), 'pt-BR', { numeric: true }));
+}
+
+function atualizarListasCores() {
+  const cores = [...new Set([...movimentos.map(m => (m.cor || '').trim()), ...ordens.flatMap(o => coresDaOS(o))].filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  document.getElementById('coresList').innerHTML = cores.map(c => `<option value="${esc(c)}">`).join('');
+}
+
+function atualizarEstoqueHint() {
+  materiais.forEach((m, i) => { const h = document.getElementById('matHint' + i); if (h) h.innerHTML = hintMaterial(m); });
+}
+
+function renderEstoque() {
+  const itens = calcularEstoque();
+  const busca = (document.getElementById('buscaEstoque').value || '').trim().toLowerCase();
+  const vis = itens.filter(i => !busca || i.cor.toLowerCase().includes(busca));
+  const tot = itens.reduce((t, i) => t + Math.max(0, i.saldo), 0);
+  const zerados = itens.filter(i => i.saldo <= 0).length;
+  const baixo = itens.filter(i => i.disponivel <= 0 && i.saldo > 0).length;
+  document.getElementById('estoqueResumo').innerHTML = `
+    <div class="kpi"><span>Chapas em estoque</span><b>${fmtNum(tot)}</b></div>
+    <div class="kpi"><span>Cores / espessuras</span><b>${itens.length}</b></div>
+    <div class="kpi"><span>Zeradas ou negativas</span><b style="color:${zerados ? 'var(--st-cancelado)' : 'var(--text)'}">${zerados}</b></div>
+    <div class="kpi"><span>Todo saldo reservado</span><b style="color:${baixo ? 'var(--st-producao)' : 'var(--text)'}">${baixo}</b></div>`;
+  const tab = document.getElementById('estoqueTabela');
+  if (!vis.length) {
+    tab.innerHTML = `<div class="empty" style="padding:30px 10px">${itens.length ? 'Nenhuma cor encontrada.' : 'Nenhuma chapa registrada ainda. Use "+ Entrada de chapas" para começar.'}</div>`;
+  } else {
+    tab.innerHTML = `<div class="est-row est-head"><span>Cor do MDF</span><span>Esp.</span><span>Saldo</span><span>Reserv.</span><span>Disp.</span></div>` +
+      vis.map(i => {
+        const c = i.saldo <= 0 ? 'var(--st-cancelado)' : i.disponivel <= 0 ? 'var(--st-producao)' : 'var(--st-concluido)';
+        return `<div class="est-row ${estoqueFiltroKey === i.key ? 'sel' : ''}" data-k="${esc(i.key)}">
+          <span class="est-cor">${esc(i.cor)}</span><span>${i.esp ? i.esp : '—'}</span>
+          <span style="color:${c};font-weight:700">${fmtNum(i.saldo)}</span><span>${i.reservado ? fmtNum(i.reservado) : '—'}</span>
+          <span style="color:${c};font-weight:700">${fmtNum(i.disponivel)}</span></div>`;
+      }).join('');
+    tab.querySelectorAll('.est-row[data-k]').forEach(r => {
+      r.onclick = () => { estoqueFiltroKey = estoqueFiltroKey === r.dataset.k ? null : r.dataset.k; renderEstoque(); };
+    });
+  }
+  // movimentações
+  const filtro = estoqueFiltroKey ? itens.find(i => i.key === estoqueFiltroKey) : null;
+  document.getElementById('movTitulo').textContent = filtro ? `Movimentações — ${filtro.cor} ${espTxt(filtro.esp)}` : 'Últimas movimentações';
+  document.getElementById('movLimpar').style.display = filtro ? 'inline-block' : 'none';
+  const movs = movimentos.filter(m => !estoqueFiltroKey || chaveEstoque(m.cor, m.espessura) === estoqueFiltroKey)
+    .sort((a, b) => (b.data || 0) - (a.data || 0)).slice(0, 80);
+  const ml = document.getElementById('movList');
+  ml.innerHTML = movs.length ? movs.map(m => {
+    const ent = m.tipo === 'entrada';
+    const origem = m.osNumero ? `${esc(m.osNumero)}${m.loja ? ' · ' + esc(m.loja) : ''}` : esc(m.origem || (ent ? 'Entrada manual' : 'Saída manual'));
+    return `<div class="mov">
+      <div class="mov-q" style="color:${ent ? 'var(--st-concluido)' : 'var(--st-cancelado)'}">${ent ? '+' : '−'}${fmtNum(Number(m.qtd) || 0)}</div>
+      <div class="mov-info"><div><b>${esc(m.cor || '')}</b> ${espTxt(m.espessura)} ${m.auto ? `<span class="tag-auto">${ent ? 'recebida na OS' : 'baixa da OS'}</span>` : ''}</div>
+        <div class="mov-sub">${fmtDateTime(m.data)} · ${origem}${m.aplicacao ? ' · ' + esc(m.aplicacao) : ''}${m.nf ? ' · NF ' + esc(m.nf) : ''}${m.obs ? ' · ' + esc(m.obs) : ''}</div></div>
+      ${m.auto || !ehAdmin ? '' : `<button class="btn-rm" data-del="${esc(m.id)}" title="Excluir">×</button>`}
+    </div>`;
+  }).join('') : `<div class="note" style="padding:14px">Nenhuma movimentação.</div>`;
+  ml.querySelectorAll('[data-del]').forEach(b => {
+    b.onclick = async () => {
+      if (!(await confirmar('Excluir esta movimentação? O saldo será recalculado.'))) return;
+      try { await db.collection('movimentos').doc(b.dataset.del).delete(); } catch (e) { await aviso('Não foi possível excluir agora.'); }
+    };
+  });
+  document.getElementById('movAviso').style.display = movimentos.length >= 950 ? 'block' : 'none';
+}
+
+// Mantém as movimentações automáticas da OS em dia (idempotente: um registro de entrada e um de baixa por OS)
+async function syncMovimentosOS(osId, o) {
+  if (!db || !osId) return;
+  const desejados = [];
+  materiaisDaOS(o).forEach((m, i) => {
+    const cor = (m.cor || '').trim();
+    if (!cor) return;
+    const base = { cor, espessura: m.espessura || '', aplicacao: m.aplicacao || '', osId, osNumero: o.numero || '', loja: o.cliente || '', auto: true };
+    if (o.status !== 'Cancelado' && Number(m.recebidas) > 0) desejados.push({ id: `os-in-${osId}-${i}`, ...base, tipo: 'entrada', qtd: Number(m.recebidas), origem: 'Recebida com a OS' });
+    if (STATUS_BAIXA.includes(o.status) && Number(m.qtd) > 0) desejados.push({ id: `os-out-${osId}-${i}`, ...base, tipo: 'saida', qtd: Number(m.qtd), origem: 'Baixa automática da OS' });
+  });
+  const existentes = movimentos.filter(m => m.auto && m.osId === osId);
+  for (const d of desejados) {
+    const { id, ...doc } = d;
+    const atual = existentes.find(x => x.id === id);
+    doc.data = atual && atual.data ? atual.data : Date.now();
+    const igual = atual && ['cor', 'espessura', 'aplicacao', 'qtd', 'tipo', 'osNumero', 'loja'].every(k => String(atual[k] ?? '') === String(doc[k] ?? ''));
+    if (!igual) await db.collection('movimentos').doc(id).set(doc);
+  }
+  for (const e of existentes) {
+    if (!desejados.some(d => d.id === e.id)) await db.collection('movimentos').doc(e.id).delete();
+  }
+  await syncFitasOS(osId, o);
+}
+
+async function removerMovimentosOS(osId) {
+  for (const m of movimentos.filter(x => x.auto && x.osId === osId)) await db.collection('movimentos').doc(m.id).delete();
+  if (movFitas.find(m => m.id === 'os-fita-' + osId)) await db.collection('movFitas').doc('os-fita-' + osId).delete();
+}
+
+function abrirMov(tipo) {
+  movTipoAtual = tipo;
+  document.getElementById('movModalTitulo').textContent = tipo === 'entrada' ? 'Entrada de chapas' : 'Saída manual de chapas';
+  document.getElementById('mOrigemLabel').textContent = tipo === 'entrada' ? 'Fornecedor / origem' : 'Motivo da saída';
+  document.getElementById('mOrigem').placeholder = tipo === 'entrada' ? 'Ex: Duratex, Loja Realizze...' : 'Ex: avaria, devolução, uso interno';
+  document.getElementById('mNfWrap').style.display = tipo === 'entrada' ? 'block' : 'none';
+  ['mCor', 'mQtd', 'mOrigem', 'mNf', 'mObs'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('mEsp').value = '18';
+  const f = estoqueFiltroKey && calcularEstoque().find(i => i.key === estoqueFiltroKey);
+  if (f) { document.getElementById('mCor').value = f.cor; document.getElementById('mEsp').value = f.esp; }
+  document.getElementById('mData').value = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  document.getElementById('movErro').style.display = 'none';
+  document.getElementById('movModalBg').classList.add('open');
+}
+function fecharMov() { document.getElementById('movModalBg').classList.remove('open'); }
+
+async function salvarMov() {
+  const err = document.getElementById('movErro');
+  const cor = document.getElementById('mCor').value.trim();
+  const qtd = Number(document.getElementById('mQtd').value);
+  const dataStr = document.getElementById('mData').value;
+  if (!cor || !(qtd > 0) || !dataStr) { err.textContent = 'Informe a cor, a quantidade (maior que zero) e a data.'; err.style.display = 'block'; return; }
+  if (!db) { err.textContent = 'Sem conexão com o armazenamento compartilhado.'; err.style.display = 'block'; return; }
+  const agora = new Date();
+  const [yy, mm, dd] = dataStr.split('-').map(Number);
+  const ts = new Date(yy, mm - 1, dd, agora.getHours(), agora.getMinutes()).getTime();
+  try {
+    await db.collection('movimentos').add({
+      tipo: movTipoAtual, cor, espessura: document.getElementById('mEsp').value, qtd, data: ts,
+      origem: document.getElementById('mOrigem').value.trim(), nf: movTipoAtual === 'entrada' ? document.getElementById('mNf').value.trim() : '',
+      obs: document.getElementById('mObs').value.trim(), auto: false, criadoEm: Date.now(),
+    });
+    fecharMov();
+  } catch (e) {
+    err.textContent = e && e.code === 'invalid_argument' ? 'Sua permissão não permite registrar (precisa ser Contribuidor ou superior).' : e && e.code === 'quota_exceeded' ? 'Limite de registros atingido.' : 'Não foi possível salvar agora. Tente novamente.';
+    err.style.display = 'block';
+  }
+}
+
+async function sincronizarTodas() {
+  if (!ehAdmin) { await aviso('Só o perfil Administrativo pode sincronizar as OS antigas.'); return; }
+  if (!db) return;
+  if (!(await confirmar('Lançar no estoque as chapas de todas as OS já cadastradas? (entrada das chapas recebidas e baixa das usadas nas OS em produção, concluídas ou entregues). Pode ser feito mais de uma vez sem duplicar.'))) return;
+  const btn = document.getElementById('btnSync');
+  btn.disabled = true; btn.textContent = 'Sincronizando...';
+  let ok = 0, falha = 0;
+  for (const o of ordens) {
+    try { await syncMovimentosOS(o.id, o); ok++; } catch (e) { falha++; }
+  }
+  btn.disabled = false; btn.textContent = 'Sincronizar OS antigas';
+  await aviso(falha ? `${ok} OS sincronizadas, ${falha} com falha — tente novamente.` : `${ok} OS sincronizadas com o estoque.`);
+}
+
+function mostrarAba(aba) {
+  document.getElementById('viewOrdens').style.display = aba === 'ordens' ? 'block' : 'none';
+  document.getElementById('viewEstoque').style.display = aba === 'estoque' ? 'block' : 'none';
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.aba === aba));
+  document.getElementById('headerSub').textContent = aba === 'ordens' ? 'Ordens de Serviço' : 'Estoque';
+  if (aba === 'estoque') { renderEstoque(); renderEstoqueFitas(); }
+}
+
+async function exportEstoquePdf() {
+  if (!window.jspdf || !window.jspdf.jsPDF) { await aviso('Gerador de PDF não carregou. Recarregue a página.'); return; }
+  const itens = calcularEstoque();
+  const itensF = calcularEstoqueFitas();
+  if (!itens.length && !itensF.length) { await aviso('Nenhuma chapa ou fita registrada no estoque.'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const W = 210, M = 14, GOLD = [201, 162, 75], DARK = [24, 24, 24], GREY = [110, 106, 98], LIGHT = [246, 243, 236];
+  const agora = new Date();
+  const geradoEm = agora.toLocaleDateString('pt-BR') + ' às ' + agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  const cab = () => {
+    doc.setFillColor(...DARK); doc.rect(0, 0, W, 26, 'F'); doc.setFillColor(...GOLD); doc.rect(0, 26, W, 1.2, 'F');
+    doc.setTextColor(...GOLD); doc.setFont('helvetica', 'bold'); doc.setFontSize(20); doc.text('iFC3D FORJA', M, 13);
+    doc.setTextColor(230, 225, 215); doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.text('Centro de Fabricação Digital  |  Sorocaba - SP', M, 19.5);
+    doc.setFontSize(11); doc.setFont('helvetica', 'bold'); doc.setTextColor(255, 255, 255); doc.text('POSIÇÃO DE ESTOQUE', W - M, 13, { align: 'right' });
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(200, 195, 185); doc.text('Emitido em ' + geradoEm, W - M, 19.5, { align: 'right' });
+  };
+  const secao = (t, y) => { doc.setFillColor(...GOLD); doc.rect(M, y - 4, 1.4, 5.5, 'F'); doc.setTextColor(...DARK); doc.setFont('helvetica', 'bold'); doc.setFontSize(11.5); doc.text(t.toUpperCase(), M + 4, y); return y + 4; };
+  const base = {
+    margin: { left: M, right: M, top: 34, bottom: 18 },
+    styles: { font: 'helvetica', fontSize: 8.5, cellPadding: 2, textColor: [40, 38, 34], lineColor: [222, 216, 204], lineWidth: 0.2 },
+    headStyles: { fillColor: DARK, textColor: GOLD, fontStyle: 'bold' }, alternateRowStyles: { fillColor: LIGHT }, didDrawPage: cab,
+  };
+  cab();
+  let y = secao('Saldo por cor e espessura', 38);
+  doc.autoTable({
+    ...base, startY: y,
+    head: [['Cor do MDF', 'Espessura', 'Entradas', 'Saídas', 'Saldo', 'Reservado', 'Disponível']],
+    body: itens.map(i => [i.cor, i.esp ? i.esp + ' mm' : '-', fmtNum(i.entradas), fmtNum(i.saidas), fmtNum(i.saldo), fmtNum(i.reservado), fmtNum(i.disponivel)]),
+    foot: [['TOTAL', '', fmtNum(itens.reduce((t, i) => t + i.entradas, 0)), fmtNum(itens.reduce((t, i) => t + i.saidas, 0)), fmtNum(itens.reduce((t, i) => t + i.saldo, 0)), fmtNum(itens.reduce((t, i) => t + i.reservado, 0)), fmtNum(itens.reduce((t, i) => t + i.disponivel, 0))]],
+    footStyles: { fillColor: [70, 66, 58], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
+    columnStyles: { 0: { halign: 'left', fontStyle: 'bold' } },
+    didParseCell: (d) => {
+      if (d.section === 'body' && d.column.index > 0) d.cell.styles.halign = 'center';
+      if (d.section === 'body' && (d.column.index === 4 || d.column.index === 6)) {
+        const v = Number(String(d.cell.raw).replace(',', '.'));
+        d.cell.styles.fontStyle = 'bold';
+        d.cell.styles.textColor = v <= 0 ? [179, 66, 60] : [74, 157, 92];
+      }
+    },
+  });
+  y = doc.lastAutoTable.finalY + 10;
+  if (itensF.length) {
+    if (y > 240) { doc.addPage(); cab(); y = 40; }
+    y = secao('Fitas de borda - saldo em metros', y);
+    doc.autoTable({
+      ...base, startY: y,
+      head: [['Largura', 'Espessura', 'Cor', 'Entradas', 'Saídas', 'Saldo', 'Reservado', 'Disponível']],
+      body: itensF.map(i => [largFitaRot(i.largura), i.esp ? String(i.esp).replace('.', ',') + ' mm' : '-', i.cor || '-', fmtNum(i.entradas), fmtNum(i.saidas), fmtNum(i.saldo), fmtNum(i.reservado), fmtNum(i.disponivel)]),
+      foot: [['TOTAL', '', '', fmtNum(itensF.reduce((t, i) => t + i.entradas, 0)), fmtNum(itensF.reduce((t, i) => t + i.saidas, 0)), fmtNum(itensF.reduce((t, i) => t + i.saldo, 0)), fmtNum(itensF.reduce((t, i) => t + i.reservado, 0)), fmtNum(itensF.reduce((t, i) => t + i.disponivel, 0))]],
+      footStyles: { fillColor: [70, 66, 58], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
+      columnStyles: { 0: { fontStyle: 'bold' } },
+      didParseCell: (d) => {
+        if (d.section === 'body' && d.column.index > 2) d.cell.styles.halign = 'center';
+        if (d.section === 'body' && (d.column.index === 5 || d.column.index === 7)) {
+          const v = Number(String(d.cell.raw).replace(',', '.'));
+          d.cell.styles.fontStyle = 'bold'; d.cell.styles.textColor = v <= 0 ? [179, 66, 60] : [74, 157, 92];
+        }
+      },
+    });
+    y = doc.lastAutoTable.finalY + 10;
+  }
+  if (y > 250) { doc.addPage(); cab(); y = 40; }
+  y = secao('Movimentações de chapas (mais recentes primeiro)', y);
+  const movs = [...movimentos].sort((a, b) => (b.data || 0) - (a.data || 0)).slice(0, 300);
+  doc.autoTable({
+    ...base, startY: y,
+    head: [['Data', 'Tipo', 'Qtd', 'Cor / espessura', 'Origem / OS', 'NF / obs.']],
+    body: movs.map(m => [fmtDateTime(m.data), m.tipo === 'entrada' ? 'Entrada' : 'Saída', (m.tipo === 'entrada' ? '+' : '-') + fmtNum(Number(m.qtd) || 0),
+      (m.cor || '') + (m.espessura ? ' ' + m.espessura + ' mm' : ''), m.osNumero ? m.osNumero + (m.loja ? ' - ' + m.loja : '') : (m.origem || '-'),
+      [m.nf ? 'NF ' + m.nf : '', m.obs || ''].filter(Boolean).join(' - ') || '-']),
+    columnStyles: { 0: { cellWidth: 27 }, 1: { cellWidth: 17 }, 2: { cellWidth: 13, halign: 'center', fontStyle: 'bold' } },
+    didParseCell: (d) => { if (d.section === 'body' && d.column.index === 2) d.cell.styles.textColor = String(d.cell.raw).startsWith('+') ? [74, 157, 92] : [179, 66, 60]; },
+  });
+  const n = doc.getNumberOfPages();
+  for (let i = 1; i <= n; i++) {
+    doc.setPage(i); doc.setDrawColor(222, 216, 204); doc.setLineWidth(0.3); doc.line(M, 285, W - M, 285);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(...GREY);
+    doc.text('iFC3D Forja - Posição de estoque gerada pelo sistema de Ordens de Serviço', M, 290);
+    doc.text('Página ' + i + ' de ' + n, W - M, 290, { align: 'right' });
+  }
+  try {
+    const downloads = await claude.use('downloads');
+    if (!downloads) { await aviso('Exportação indisponível nesta visualização.'); return; }
+    await downloads.save({ filename: `estoque-chapas-ifc3d-${agora.toISOString().slice(0, 10)}.pdf`, data: doc.output('blob') });
+  } catch (e) { if (!(e && e.code === 'declined')) await aviso('Não foi possível exportar agora.'); }
+}
+
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => mostrarAba(t.dataset.aba));
+document.getElementById('btnEntrada').onclick = () => abrirMov('entrada');
+document.getElementById('btnSaida').onclick = () => abrirMov('saida');
+document.getElementById('btnEstoquePdf').onclick = exportEstoquePdf;
+document.getElementById('btnSync').onclick = sincronizarTodas;
+document.getElementById('movCancelar').onclick = fecharMov;
+document.getElementById('movSalvar').onclick = salvarMov;
+document.getElementById('movModalBg').onclick = (e) => { if (e.target.id === 'movModalBg') fecharMov(); };
+document.getElementById('movLimpar').onclick = () => { estoqueFiltroKey = null; renderEstoque(); };
+document.getElementById('buscaEstoque').oninput = renderEstoque;
+document.getElementById('fCorMdf').addEventListener('input', atualizarEstoqueHint);
+document.getElementById('fEspessura').addEventListener('change', atualizarEstoqueHint);
+
+
+// ===== DIÁLOGOS NA PÁGINA (o visualizador não exibe alert/confirm) =====
+let dlgResolver = null;
+function abrirDialogo(msg, comCancelar) {
+  document.getElementById('dlgMsg').textContent = msg;
+  document.getElementById('dlgCancelar').hidden = !comCancelar;
+  document.getElementById('dlgOk').textContent = comCancelar ? 'Confirmar' : 'OK';
+  document.getElementById('dlgBg').hidden = false;
+  return new Promise(res => { dlgResolver = res; });
+}
+function fecharDialogo(v) { document.getElementById('dlgBg').hidden = true; if (dlgResolver) { const r = dlgResolver; dlgResolver = null; r(v); } }
+function aviso(msg) { return abrirDialogo(msg, false); }
+function confirmar(msg) { return abrirDialogo(msg, true); }
+document.getElementById('dlgOk').onclick = () => fecharDialogo(true);
+document.getElementById('dlgCancelar').onclick = () => fecharDialogo(false);
+
+// ===== IMPORTAR PEDIDO DO PORTAL DAS LOJAS =====
+function semAcento(t) { return t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim(); }
+function lerPedido(texto) {
+  const campos = {}; let ultimo = null;
+  texto.replace(/\r/g, '').split('\n').forEach(linha => {
+    const limpa = linha.replace(/[*_~]/g, '').trim();
+    if (!limpa) return;
+    const m = limpa.match(/^([A-Za-zÀ-ú ./]+?):\s*(.*)$/);
+    if (m && m[1].length <= 30) { ultimo = semAcento(m[1]); campos[ultimo] = m[2].trim(); }
+    else if (ultimo) campos[ultimo] += '\n' + limpa;
+  });
+  return campos;
+}
+function dataBr(t) { const m = (t || '').match(/(\d{2})\/(\d{2})\/(\d{4})/); return m ? `${m[3]}-${m[2]}-${m[1]}` : ''; }
+function numBr(t) { const m = (t || '').replace(',', '.').match(/\d+(\.\d+)?/); return m ? m[0] : ''; }
+
+document.getElementById('btnImportar').onclick = () => {
+  document.getElementById('impTexto').value = '';
+  document.getElementById('impErro').hidden = true;
+  document.getElementById('impBg').hidden = false;
+};
+document.getElementById('impCancelar').onclick = () => { document.getElementById('impBg').hidden = true; };
+document.getElementById('impOk').onclick = () => {
+  const c = lerPedido(document.getElementById('impTexto').value);
+  const err = document.getElementById('impErro');
+  if (!c['loja'] && !c['pedido']) { err.textContent = 'Não reconheci um pedido nesse texto. Cole a mensagem inteira, começando em "PEDIDO iFC3D FORJA".'; err.hidden = false; return; }
+  document.getElementById('impBg').hidden = true;
+  openNew();
+  const set = (id, v) => { if (v !== undefined && v !== '') document.getElementById(id).value = v; };
+  set('fCliente', c['loja']);
+  set('fContato', [c['solicitante'], c['whatsapp'] || c['contato']].filter(Boolean).join(' - '));
+  set('fAmbiente', c['ambiente']);
+  set('fClienteFinal', c['cliente da loja']);
+  if (c['cor da etiqueta'] && ETQ_CORES[c['cor da etiqueta'].trim()]) { document.getElementById('fEtiqueta').value = c['cor da etiqueta'].trim(); atualizarEtq(); }
+  const servicos = (c['servicos'] || '').split(/,\s*/).filter(Boolean);
+  const opcoes = [...document.getElementById('fTecnologia').options].map(o => o.value);
+  const tec = servicos.find(sv => opcoes.includes(sv));
+  if (tec) document.getElementById('fTecnologia').value = tec;
+  const linhasChapa = String(c['chapas'] || '').split('\n').map(l => l.trim()).filter(l => /^-/.test(l));
+  if (linhasChapa.length) {
+    materiais = linhasChapa.map(l => {
+      const [cab, ...resto] = l.replace(/^-\s*/, '').split(' | ');
+      const mm = cab.match(/^(.*?):\s*(.*)$/);
+      const aplic = mm ? mm[1].trim() : '', cor = mm ? mm[2].trim() : cab.trim();
+      const espM = resto.join(' ').match(/(\d+)\s*mm/), qM = resto.join(' ').match(/(\d+)\s*chapa/);
+      const q = qM ? Number(qM[1]) : null;
+      return { aplicacao: APLICACOES.includes(aplic) ? aplic : aplic, cor, espessura: espM ? espM[1] : '', qtd: q, recebidas: /loja envia/i.test(l) ? q : null };
+    });
+  } else if (c['cor do mdf']) {
+    const q = numBr(c['chapas estimadas']);
+    materiais = [{ aplicacao: '', cor: c['cor do mdf'], espessura: numBr(c['espessura']), qtd: q ? Number(q) : null, recebidas: /^sim/i.test(c['loja envia as chapas'] || '') ? Number(numBr(c['loja envia as chapas'])) || null : null }];
+  }
+  renderMateriais();
+  const esp = numBr(c['espessura']);
+
+  const mFita = numBr(c['fitagem de borda']);
+  if (mFita) { fitas = [{ largura: SUGESTAO_FITA[corParaFita(materiais).esp || esp] || '', larguraOutra: null, espessura: '1', cor: '', metros: Number(mFita) }]; renderFitas(); }
+  set('fPrazo', dataBr(c['prazo desejado']));
+  const enviado = (c['enviado em'] || '').match(/(\d{2}\/\d{2}\/\d{4}).*?(\d{2}:\d{2})/);
+  if (enviado) { set('fDataSolicitacao', dataBr(enviado[1])); set('fHoraSolicitacao', enviado[2]); }
+  const desc = [c['descricao'], servicos.length > 1 ? 'Serviços: ' + servicos.join(', ') : ''].filter(Boolean).join('\n');
+  set('fDescricao', desc);
+  set('fObs', [c['pedido'] ? 'Pedido da loja ' + c['pedido'] : '', c['observacoes']].filter(Boolean).join('\n'));
+  atualizarEstoqueHint(); updateSaldo();
+  document.getElementById('modalTitle').textContent = 'Nova OS · pedido ' + (c['pedido'] || 'importado');
+  pedidoImportado = (c['pedido'] || '').trim();
+  atualizarBotaoAviso();
+};
+
+// ===== CONTROLE DE FITA DE BORDA =====
+const FITA_LARGURAS = [
+  { v: '19', uso: 'MDF 15–18 mm', min: 15, max: 18 },
+  { v: '22', uso: 'MDF 18 mm, deixando sobra para refilo', min: 18, max: 18 },
+  { v: '23', uso: 'MDF 18 mm', min: 18, max: 18 },
+  { v: '25', uso: 'MDF 18–20 mm', min: 18, max: 20 },
+  { v: '29', uso: 'MDF 25 mm', min: 25, max: 25 },
+  { v: '30', uso: 'MDF 25 mm', min: 25, max: 25 },
+  { v: '35', uso: 'MDF 30 mm', min: 30, max: 30 },
+  { v: '40', uso: 'Peças especiais' },
+  { v: '45', uso: 'Peças mais espessas' },
+  { v: '50', uso: 'Tampos / peças especiais' },
+  { v: '60', uso: 'Tampos engrossados' },
+  { v: '65', uso: 'Aplicações especiais' },
+  { v: '80+', uso: 'Painéis e peças engrossadas / especiais' },
+];
+const FITA_ESPESSURAS = ['0.45', '1', '2', '3'];
+const SUGESTAO_FITA = { '15': '19', '18': '22', '20': '25', '25': '29', '30': '35' };
+let fitas = [];
+
+function fmtEspFita(e) { return String(e).replace('.', ',') + ' mm'; }
+function larguraFitaTxt(f) { return f.largura === '80+' ? (f.larguraOutra ? f.larguraOutra + ' mm' : '80 mm ou mais') : (f.largura ? f.largura + ' mm' : '—'); }
+function fitaTexto(f) { return `${larguraFitaTxt(f)} × ${f.espessura ? fmtEspFita(f.espessura) : '—'}${f.cor ? ' ' + f.cor : ''}: ${f.metros != null ? String(f.metros).replace('.', ',') + ' m' : '—'}`; }
+function totalFitas(lista) { return (lista || []).reduce((t, f) => t + (Number(f.metros) || 0), 0); }
+
+function alertaFita(f) {
+  const esps = [...new Set(materiais.map(m => Number(m.espessura)).filter(Boolean))];
+  const info = FITA_LARGURAS.find(l => l.v === f.largura);
+  if (!esps.length || !info || info.min == null) return '';
+  if (esps.some(e => e >= info.min && e <= info.max)) return '';
+  const lista = esps.sort((x, y) => x - y).join(', ');
+  if (esps.every(e => e > info.max)) return `Atenção: fita de ${info.v} mm é estreita para as chapas desta OS (${lista} mm).`;
+  return `Atenção: fita de ${info.v} mm é indicada para ${info.uso}; as chapas desta OS são ${lista} mm.`;
+}
+
+function renderFitas() {
+  const el = document.getElementById('fitasList');
+  el.innerHTML = fitas.map((f, i) => {
+    const info = FITA_LARGURAS.find(l => l.v === f.largura);
+    const alerta = alertaFita(f);
+    return `<div class="fita">
+      <div class="fita-top"><b>Fita ${i + 1}</b><button type="button" class="btn-rm" data-rmfita="${i}" title="Remover fita">×</button></div>
+      <div class="row2">
+        <div>
+          <label>Largura</label>
+          <select data-i="${i}" data-k="largura">
+            <option value="">—</option>
+            ${FITA_LARGURAS.map(l => `<option value="${l.v}" ${f.largura === l.v ? 'selected' : ''}>${l.v === '80+' ? '80 mm ou mais' : l.v + ' mm'}</option>`).join('')}
+          </select>
+        </div>
+        <div>
+          <label>Metros lineares</label>
+          <input type="number" min="0" step="0.1" inputmode="decimal" placeholder="0" value="${f.metros ?? ''}" data-i="${i}" data-k="metros">
+        </div>
+      </div>
+      ${f.largura === '80+' ? `<label>Largura exata (mm)</label><input type="number" min="80" step="1" placeholder="Ex: 100" value="${f.larguraOutra ?? ''}" data-i="${i}" data-k="larguraOutra">` : ''}
+      <div class="fita-uso">${info ? 'Uso: ' + info.uso : 'Escolha a largura da fita.'}</div>
+      ${(() => { const sf = saldoFitaPara(f, { corMdf: corParaFita(materiais).cor }); return sf ? `<div class="fita-estoque">Em estoque (${esc(sf.rot)}): <b style="color:${sf.saldo <= 0 ? 'var(--st-cancelado)' : 'var(--gold)'}">${fmtNum(sf.saldo)} m</b></div>` : ''; })()}
+      <label>Espessura da fita</label>
+      <div class="esp-fita">${FITA_ESPESSURAS.map(e => `<button type="button" class="${f.espessura === e ? 'sel' : ''}" data-espfita="${i}" data-v="${e}">${fmtEspFita(e)}</button>`).join('')}</div>
+      <label>Cor da fita</label>
+      <input placeholder="Mesma do tamponamento, se vazio" value="${esc(f.cor || '')}" data-i="${i}" data-k="cor" list="coresList">
+      ${alerta ? `<div class="fita-alerta">${alerta}</div>` : ''}
+    </div>`;
+  }).join('');
+  el.querySelectorAll('[data-k]').forEach(inp => {
+    const ev = inp.tagName === 'SELECT' ? 'onchange' : 'oninput';
+    inp[ev] = () => {
+      const i = Number(inp.dataset.i), k = inp.dataset.k;
+      let v = inp.value;
+      if (k === 'metros' || k === 'larguraOutra') v = v === '' ? null : Number(v);
+      fitas[i][k] = v;
+      if (k === 'largura') renderFitas(); else atualizarTotalFitas();
+    };
+  });
+  el.querySelectorAll('[data-espfita]').forEach(b => {
+    b.onclick = () => { fitas[Number(b.dataset.espfita)].espessura = b.dataset.v; renderFitas(); };
+  });
+  el.querySelectorAll('[data-rmfita]').forEach(b => {
+    b.onclick = () => { fitas.splice(Number(b.dataset.rmfita), 1); renderFitas(); };
+  });
+  atualizarTotalFitas();
+}
+function atualizarTotalFitas() {
+  const t = totalFitas(fitas);
+  document.getElementById('fitaTotal').innerHTML = fitas.length ? `Total de fita: <b>${fmtNum(t)} m</b>` : 'Nenhuma fita nesta OS.';
+}
+document.getElementById('btnAddFita').onclick = () => {
+  const esp = document.getElementById('fEspessura').value;
+  fitas.push({ largura: SUGESTAO_FITA[esp] || '', larguraOutra: null, espessura: '1', cor: '', metros: null });
+  renderFitas();
+};
+document.getElementById('fEspessura').addEventListener('change', () => { if (fitas.length) renderFitas(); });
+function fitasDaOS(o) {
+  if (Array.isArray(o.fitas) && o.fitas.length) return o.fitas.map(f => ({ ...f }));
+  if (o.fitagem) return [{ largura: SUGESTAO_FITA[o.espessura] || '', larguraOutra: null, espessura: '', cor: '', metros: Number(o.fitagem) }];
+  return [];
+}
+
+// ===== ESTOQUE DE FITAS DE BORDA =====
+let movFitas = [];
+let fitaFiltroKey = null;
+let fitaTipoAtual = 'entrada';
+
+function largFitaChave(f) { return f.largura === '80+' ? (f.larguraOutra ? String(f.larguraOutra) : '80+') : String(f.largura || ''); }
+function largFitaRot(l) { return l === '80+' ? '80+ mm' : (l ? l + ' mm' : '—'); }
+function chaveFita(largura, esp, cor) { return largura + '|' + String(esp || '') + '|' + String(cor || '').trim().toLowerCase().replace(/\s+/g, ' '); }
+function itemFitaDaOS(f, o) { const pad = o.materiais ? corParaFita(materiaisDaOS(o)).cor : o.corMdf; return { largura: largFitaChave(f), espessura: f.espessura || '', cor: (f.cor || pad || '').trim(), metros: Number(f.metros) || 0 }; }
+
+function calcularEstoqueFitas() {
+  const itens = {};
+  const item = (l, e, c) => {
+    const k = chaveFita(l, e, c);
+    if (!itens[k]) itens[k] = { key: k, largura: l, esp: String(e || ''), cor: String(c || '').trim(), entradas: 0, saidas: 0, reservado: 0 };
+    return itens[k];
+  };
+  movFitas.forEach(m => (m.itens || []).forEach(i => {
+    if (!i.largura) return;
+    const it = item(i.largura, i.espessura, i.cor);
+    if (m.tipo === 'entrada') it.entradas += Number(i.metros) || 0; else it.saidas += Number(i.metros) || 0;
+  }));
+  ordens.forEach(o => {
+    if (o.status !== 'Aguardando') return;
+    fitasDaOS(o).forEach(f => { const i = itemFitaDaOS(f, o); if (i.largura && i.metros > 0) item(i.largura, i.espessura, i.cor).reservado += i.metros; });
+  });
+  const num = l => l === '80+' ? 80 : Number(l) || 0;
+  return Object.values(itens).map(i => ({ ...i, saldo: i.entradas - i.saidas, disponivel: i.entradas - i.saidas - i.reservado }))
+    .sort((a, b) => num(a.largura) - num(b.largura) || Number(a.esp) - Number(b.esp) || a.cor.localeCompare(b.cor, 'pt-BR'));
+}
+
+function saldoFitaPara(f, o) {
+  const i = itemFitaDaOS(f, o);
+  if (!i.largura || !i.espessura || !i.cor) return null;
+  const it = calcularEstoqueFitas().find(x => x.key === chaveFita(i.largura, i.espessura, i.cor));
+  return { saldo: it ? it.saldo : 0, rot: `${largFitaRot(i.largura)} × ${fmtEspFita(i.espessura)} ${i.cor}` };
+}
+
+function renderEstoqueFitas() {
+  const itens = calcularEstoqueFitas();
+  const busca = semAcento(document.getElementById('buscaFita').value || '');
+  const vis = itens.filter(i => !busca || semAcento(i.cor).includes(busca) || i.largura.includes(busca));
+  const tot = itens.reduce((t, i) => t + Math.max(0, i.saldo), 0);
+  const zer = itens.filter(i => i.saldo <= 0).length;
+  const res = itens.reduce((t, i) => t + i.reservado, 0);
+  document.getElementById('fitaResumo').innerHTML = `
+    <div class="kpi"><span>Metros em estoque</span><b>${fmtNum(tot)} m</b></div>
+    <div class="kpi"><span>Tipos de fita</span><b>${itens.length}</b></div>
+    <div class="kpi"><span>Zerados ou negativos</span><b style="color:${zer ? 'var(--st-cancelado)' : 'var(--text)'}">${zer}</b></div>
+    <div class="kpi"><span>Reservado em OS</span><b>${fmtNum(res)} m</b></div>`;
+  const tab = document.getElementById('fitaTabela');
+  if (!vis.length) {
+    tab.innerHTML = `<div class="empty" style="padding:30px 10px">${itens.length ? 'Nenhuma fita encontrada.' : 'Nenhuma fita registrada ainda. Use "+ Entrada de fita" para começar.'}</div>`;
+  } else {
+    tab.innerHTML = `<div class="est-row estf-row est-head"><span>Larg.</span><span>Esp.</span><span>Cor</span><span>Saldo</span><span>Res.</span><span>Disp.</span></div>` +
+      vis.map(i => {
+        const c = i.saldo <= 0 ? 'var(--st-cancelado)' : i.disponivel <= 0 ? 'var(--st-producao)' : 'var(--st-concluido)';
+        return `<div class="est-row estf-row ${fitaFiltroKey === i.key ? 'sel' : ''}" data-k="${esc(i.key)}">
+          <span style="font-weight:700">${esc(largFitaRot(i.largura))}</span><span>${i.esp ? esc(String(i.esp).replace('.', ',')) : '—'}</span>
+          <span class="est-cor" style="text-align:left">${esc(i.cor || '—')}</span>
+          <span style="color:${c};font-weight:700">${fmtNum(i.saldo)}</span><span>${i.reservado ? fmtNum(i.reservado) : '—'}</span>
+          <span style="color:${c};font-weight:700">${fmtNum(i.disponivel)}</span></div>`;
+      }).join('');
+    tab.querySelectorAll('.est-row[data-k]').forEach(r => {
+      r.onclick = () => { fitaFiltroKey = fitaFiltroKey === r.dataset.k ? null : r.dataset.k; renderEstoqueFitas(); };
+    });
+  }
+  const filtro = fitaFiltroKey ? itens.find(i => i.key === fitaFiltroKey) : null;
+  document.getElementById('movFitaTitulo').textContent = filtro ? `Movimentações — ${largFitaRot(filtro.largura)} × ${fmtEspFita(filtro.esp)} ${filtro.cor}` : 'Últimas movimentações';
+  document.getElementById('movFitaLimpar').style.display = filtro ? 'inline-block' : 'none';
+  const linhas = [];
+  movFitas.forEach(m => (m.itens || []).forEach(i => {
+    if (fitaFiltroKey && chaveFita(i.largura, i.espessura, i.cor) !== fitaFiltroKey) return;
+    linhas.push({ m, i });
+  }));
+  linhas.sort((a, b) => (b.m.data || 0) - (a.m.data || 0));
+  const ml = document.getElementById('movFitaList');
+  ml.innerHTML = linhas.length ? linhas.slice(0, 80).map(({ m, i }) => {
+    const ent = m.tipo === 'entrada';
+    const origem = m.osNumero ? `${esc(m.osNumero)}${m.loja ? ' · ' + esc(m.loja) : ''}` : esc(m.origem || (ent ? 'Entrada manual' : 'Saída manual'));
+    return `<div class="mov">
+      <div class="mov-q" style="color:${ent ? 'var(--st-concluido)' : 'var(--st-cancelado)'};font-size:18px;min-width:62px">${ent ? '+' : '−'}${fmtNum(Number(i.metros) || 0)} m</div>
+      <div class="mov-info"><div><b>${esc(largFitaRot(i.largura))} × ${esc(fmtEspFita(i.espessura || '?'))}</b> ${esc(i.cor || '')} ${m.auto ? '<span class="tag-auto">baixa da OS</span>' : ''}</div>
+        <div class="mov-sub">${fmtDateTime(m.data)} · ${origem}${m.rolos ? ' · ' + m.rolos + ' rolo(s)' : ''}${m.nf ? ' · NF ' + esc(m.nf) : ''}${m.obs ? ' · ' + esc(m.obs) : ''}</div></div>
+      ${m.auto || !ehAdmin ? '' : `<button class="btn-rm" data-delfita="${esc(m.id)}" title="Excluir">×</button>`}
+    </div>`;
+  }).join('') : `<div class="note" style="padding:14px">Nenhuma movimentação.</div>`;
+  ml.querySelectorAll('[data-delfita]').forEach(b => {
+    b.onclick = async () => {
+      if (!(await confirmar('Excluir esta movimentação de fita? O saldo será recalculado.'))) return;
+      try { await db.collection('movFitas').doc(b.dataset.delfita).delete(); } catch (e) { await aviso('Não foi possível excluir agora.'); }
+    };
+  });
+}
+
+async function syncFitasOS(osId, o) {
+  if (!db || !osId) return;
+  const id = 'os-fita-' + osId;
+  const atual = movFitas.find(m => m.id === id);
+  const itens = fitasDaOS(o).map(f => itemFitaDaOS(f, o)).filter(i => i.largura && i.metros > 0);
+  const ativo = STATUS_BAIXA.includes(o.status) && itens.length;
+  const ref = db.collection('movFitas').doc(id);
+  if (ativo) {
+    const doc = { tipo: 'saida', auto: true, osId, osNumero: o.numero || '', loja: o.cliente || '', origem: 'Baixa automática da OS', itens, data: atual && atual.data ? atual.data : Date.now() };
+    const igual = atual && JSON.stringify(atual.itens) === JSON.stringify(itens) && atual.osNumero === doc.osNumero && atual.loja === doc.loja;
+    if (!igual) await ref.set(doc);
+  } else if (atual) {
+    await ref.delete();
+  }
+}
+
+function abrirMovFita(tipo) {
+  fitaTipoAtual = tipo;
+  document.getElementById('fitaModalTitulo').textContent = tipo === 'entrada' ? 'Entrada de fita' : 'Saída manual de fita';
+  document.getElementById('fmOrigemLabel').textContent = tipo === 'entrada' ? 'Fornecedor / origem' : 'Motivo da saída';
+  document.getElementById('fmOrigem').placeholder = tipo === 'entrada' ? 'Ex: Rehau, Tecnocryl, Proadec...' : 'Ex: perda, uso interno, devolução';
+  document.getElementById('fmNfWrap').hidden = tipo !== 'entrada';
+  const sel = document.getElementById('fmLargura');
+  sel.innerHTML = FITA_LARGURAS.map(l => `<option value="${l.v}">${l.v === '80+' ? '80 mm ou mais' : l.v + ' mm'} · ${l.uso}</option>`).join('');
+  sel.value = '22';
+  ['fmOutra', 'fmCor', 'fmRolos', 'fmPorRolo', 'fmMetros', 'fmNf', 'fmOrigem', 'fmObs'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('fmEsp').value = '1';
+  const f = fitaFiltroKey && calcularEstoqueFitas().find(i => i.key === fitaFiltroKey);
+  if (f) {
+    const padrao = FITA_LARGURAS.some(l => l.v === f.largura);
+    sel.value = padrao ? f.largura : '80+';
+    if (!padrao && f.largura !== '80+') document.getElementById('fmOutra').value = f.largura;
+    document.getElementById('fmEsp').value = f.esp || '1';
+    document.getElementById('fmCor').value = f.cor;
+  }
+  document.getElementById('fmOutraWrap').hidden = sel.value !== '80+';
+  document.getElementById('fmData').value = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  document.getElementById('fmErro').hidden = true;
+  document.getElementById('fitaModalBg').classList.add('open');
+}
+function fecharMovFita() { document.getElementById('fitaModalBg').classList.remove('open'); }
+function calcTotalRolos() {
+  const r = Number(document.getElementById('fmRolos').value), p = Number(document.getElementById('fmPorRolo').value);
+  if (r > 0 && p > 0) document.getElementById('fmMetros').value = Math.round(r * p * 100) / 100;
+}
+async function salvarMovFita() {
+  const err = document.getElementById('fmErro');
+  const larg = document.getElementById('fmLargura').value;
+  const outra = document.getElementById('fmOutra').value;
+  const cor = document.getElementById('fmCor').value.trim();
+  const metros = Number(document.getElementById('fmMetros').value);
+  const dataStr = document.getElementById('fmData').value;
+  if (!cor || !(metros > 0) || !dataStr) { err.textContent = 'Informe a cor, o total em metros (maior que zero) e a data.'; err.hidden = false; return; }
+  if (!db) { err.textContent = 'Sem conexão com o armazenamento compartilhado.'; err.hidden = false; return; }
+  const agora = new Date();
+  const [yy, mm, dd] = dataStr.split('-').map(Number);
+  const item = { largura: larg === '80+' ? (outra ? String(Number(outra)) : '80+') : larg, espessura: document.getElementById('fmEsp').value, cor, metros };
+  try {
+    await db.collection('movFitas').add({
+      tipo: fitaTipoAtual, auto: false, itens: [item], data: new Date(yy, mm - 1, dd, agora.getHours(), agora.getMinutes()).getTime(),
+      rolos: Number(document.getElementById('fmRolos').value) || null, origem: document.getElementById('fmOrigem').value.trim(),
+      nf: fitaTipoAtual === 'entrada' ? document.getElementById('fmNf').value.trim() : '', obs: document.getElementById('fmObs').value.trim(), criadoEm: Date.now(),
+    });
+    fecharMovFita();
+  } catch (e) {
+    err.textContent = e && e.code === 'invalid_argument' ? 'Sua permissão não permite registrar (precisa ser Contribuidor ou superior).' : 'Não foi possível salvar agora. Tente novamente.';
+    err.hidden = false;
+  }
+}
+
+function mostrarSubEstoque(sub) {
+  document.getElementById('subChapas').hidden = sub !== 'chapas';
+  document.getElementById('subFitas').hidden = sub !== 'fitas';
+  document.querySelectorAll('.subtab').forEach(t => t.classList.toggle('active', t.dataset.sub === sub));
+  if (sub === 'fitas') renderEstoqueFitas(); else renderEstoque();
+}
+document.querySelectorAll('.subtab').forEach(t => t.onclick = () => mostrarSubEstoque(t.dataset.sub));
+document.getElementById('btnEntradaFita').onclick = () => abrirMovFita('entrada');
+document.getElementById('btnSaidaFita').onclick = () => abrirMovFita('saida');
+document.getElementById('btnEstoquePdf2').onclick = () => exportEstoquePdf();
+document.getElementById('fmCancelar').onclick = fecharMovFita;
+document.getElementById('fmSalvar').onclick = salvarMovFita;
+document.getElementById('fitaModalBg').onclick = (e) => { if (e.target.id === 'fitaModalBg') fecharMovFita(); };
+document.getElementById('fmLargura').onchange = (e) => { document.getElementById('fmOutraWrap').hidden = e.target.value !== '80+'; };
+document.getElementById('fmRolos').oninput = calcTotalRolos;
+document.getElementById('fmPorRolo').oninput = calcTotalRolos;
+document.getElementById('buscaFita').oninput = renderEstoqueFitas;
+document.getElementById('movFitaLimpar').onclick = () => { fitaFiltroKey = null; renderEstoqueFitas(); };
+
+// ===== ANDAMENTO DO PEDIDO / AVISO À LOJA =====
+let pedidoImportado = '';
+function pedidoDaOS(o) {
+  if (o.pedidoLoja) return o.pedidoLoja;
+  const m = String(o.observacoes || '').match(/PD-\d{6}-\d{4}-\d{3}/);
+  return m ? m[0] : '';
+}
+function telefoneLoja(contato) {
+  const nums = String(contato || '').match(/\+?\d[\d\s().-]{7,}\d/g);
+  if (!nums) return '';
+  let d = nums[nums.length - 1].replace(/\D/g, '');
+  if (d.length === 10 || d.length === 11) d = '55' + d;
+  return d.length >= 12 && d.length <= 13 ? d : '';
+}
+function historicoDaOS(o) {
+  if (Array.isArray(o.historico) && o.historico.length) return o.historico;
+  const h = [];
+  if (o.criadoEm) h.push({ status: 'Aguardando', em: o.criadoEm });
+  if (o.concluidoEm) h.push({ status: 'Concluído', em: o.concluidoEm });
+  if (o.entregueEm) h.push({ status: 'Entregue', em: o.entregueEm });
+  if (o.status && !h.some(x => x.status === o.status)) h.push({ status: o.status, em: o.statusAtualizadoEm || o.atualizadoEm || Date.now() });
+  return h.sort((a, b) => a.em - b.em);
+}
+const ETAPAS_LOJA = { 'Aguardando': 'Pedido recebido', 'Em Produção': 'Em produção', 'Concluído': 'Produção concluída', 'Entregue': 'Entregue', 'Cancelado': 'Cancelado' };
+function mensagemStatus(o) {
+  const hist = historicoDaOS(o);
+  const ordem = ['Aguardando', 'Em Produção', 'Concluído', 'Entregue'];
+  const linhas = [
+    '*iFC3D Forja · Andamento do seu pedido*',
+    '',
+    pedidoDaOS(o) ? `Pedido: ${pedidoDaOS(o)}` : '',
+    `OS: ${o.numero || ''}`,
+    o.cliente ? `Loja: ${o.cliente}` : '',
+    o.clienteFinal ? `Cliente: ${o.clienteFinal}` : '',
+    o.etiqueta ? `Etiqueta: ${o.etiqueta}` : '',
+    o.ambiente ? `Ambiente: ${o.ambiente}` : '',
+    '',
+    `*Status atual: ${ETAPAS_LOJA[o.status] || o.status}*`,
+    '',
+  ];
+  if (o.status === 'Cancelado') {
+    const c = hist.filter(x => x.status === 'Cancelado').pop();
+    linhas.push(`[x] Cancelado${c ? ' em ' + fmtDateTime(c.em) : ''}`);
+  } else {
+    const atualIdx = ordem.indexOf(o.status);
+    ordem.forEach((st, i) => {
+      const reg = hist.filter(x => x.status === st).pop();
+      if (i <= atualIdx) linhas.push(`[OK] ${ETAPAS_LOJA[st]}${reg ? ' - ' + fmtDateTime(reg.em) : ''}`);
+      else linhas.push(`[  ] ${ETAPAS_LOJA[st]}`);
+    });
+  }
+  if (o.prazo && o.status !== 'Entregue' && o.status !== 'Cancelado') linhas.push('', `Prazo previsto: ${fmtDate(o.prazo)}`);
+  linhas.push('', 'Qualquer dúvida, é só responder esta mensagem.');
+  return linhas.filter((l, i, arr) => l !== '' || (arr[i - 1] !== '' && i > 0)).join('\n').replace(/\n{3,}/g, '\n\n');
+}
+function linkWhats(o) { const t = telefoneLoja(o.contato); return t ? `https://wa.me/${t}?text=${encodeURIComponent(mensagemStatus(o))}` : ''; }
+
+function osDoFormulario() {
+  const original = editingId ? ordens.find(x => x.id === editingId) : null;
+  const o = { ...(original || {}), cliente: document.getElementById('fCliente').value.trim(), contato: document.getElementById('fContato').value.trim(),
+    ambiente: document.getElementById('fAmbiente').value.trim(), prazo: document.getElementById('fPrazo').value, status: currentStatus,
+    pedidoLoja: (original && original.pedidoLoja) || pedidoImportado || '', observacoes: document.getElementById('fObs').value };
+  if (!original || original.status !== currentStatus) o.historico = [...(original ? historicoDaOS(original) : []), { status: currentStatus, em: Date.now() }];
+  return o;
+}
+function atualizarBotaoAviso() {
+  const btn = document.getElementById('btnAvisarLoja'), hint = document.getElementById('waHint');
+  const o = osDoFormulario();
+  const link = linkWhats(o);
+  btn.href = link || '#';
+  btn.setAttribute('aria-disabled', link ? 'false' : 'true');
+  const salvo = editingId && ordens.find(x => x.id === editingId);
+  hint.textContent = !link ? 'Coloque o WhatsApp da loja no campo Contato para poder avisar.'
+    : (salvo && salvo.status !== currentStatus ? 'Salve a OS para registrar o novo status. O aviso já vai com o status escolhido.' : 'Envia para ' + o.contato);
+  const h = document.getElementById('histStatus');
+  const hist = editingId && salvo ? historicoDaOS(salvo) : [];
+  h.hidden = !hist.length;
+  h.innerHTML = hist.map(x => `<div><b>${esc(x.status)}</b> · ${fmtDateTime(x.em)}</div>`).join('');
+}
+['fContato', 'fCliente', 'fAmbiente', 'fPrazo'].forEach(id => document.getElementById(id).addEventListener('input', atualizarBotaoAviso));
+document.getElementById('statusRow').addEventListener('click', () => setTimeout(atualizarBotaoAviso, 0));
+function oferecerAviso(o) {
+  const link = linkWhats(o);
+  if (!link) return;
+  document.getElementById('avisoMsg').textContent = `A OS ${o.numero || ''} (${o.cliente || ''}) passou para "${o.status}". Quer avisar a loja?`;
+  document.getElementById('avisoTexto').textContent = mensagemStatus(o);
+  document.getElementById('avisoLink').href = link;
+  document.getElementById('avisoBg').hidden = false;
+}
+document.getElementById('avisoFechar').onclick = () => { document.getElementById('avisoBg').hidden = true; };
+document.getElementById('avisoLink').addEventListener('click', () => setTimeout(() => { document.getElementById('avisoBg').hidden = true; }, 300));
+
+// ===== CHAPAS DA OS (várias cores / aplicações) =====
+const APLICACOES = ['Caixaria', 'Tamponamento', 'Portas', 'Frentes de gaveta', 'Fundos', 'Prateleiras', 'Tampo', 'Painel', 'Outro'];
+const ESP_CHAPA = ['3', '6', '9', '12', '15', '18', '20', '25'];
+let materiais = [];
+function materiaisDaOS(o) {
+  if (Array.isArray(o.materiais) && o.materiais.length) return o.materiais.map(m => ({ ...m }));
+  if (o.corMdf || o.chapas != null || o.chapasRecebidas != null) return [{ aplicacao: '', cor: o.corMdf || '', espessura: o.espessura || '', qtd: o.chapas ?? null, recebidas: o.chapasRecebidas ?? null }];
+  return [];
+}
+function linhaPadrao(i) { return { aplicacao: i === 0 ? 'Caixaria' : i === 1 ? 'Tamponamento' : '', cor: '', espessura: '', qtd: null, recebidas: null }; }
+function coresDaOS(o) { return [...new Set(materiaisDaOS(o).map(m => (m.cor || '').trim()).filter(Boolean))]; }
+function corParaFita(lista) {
+  const t = lista.find(m => /tampon/i.test(m.aplicacao || '') && (m.cor || '').trim()) || lista.find(m => (m.cor || '').trim());
+  return t ? { cor: t.cor.trim(), esp: t.espessura || '' } : { cor: '', esp: '' };
+}
+function hintMaterial(m) {
+  const cor = (m.cor || '').trim();
+  if (!cor) return '';
+  const it = calcularEstoque().find(i => i.key === chaveEstoque(cor, m.espessura));
+  if (!it) return `Estoque de <b>${esc(cor)} ${espTxt(m.espessura)}</b>: nenhum registro ainda.`;
+  const c = it.saldo <= 0 ? 'var(--st-cancelado)' : 'var(--gold)';
+  return `Em estoque: <b style="color:${c}">${fmtNum(it.saldo)} chapa(s)</b>${it.reservado ? ` · ${fmtNum(it.reservado)} reservada(s)` : ''}`;
+}
+function sincronizarCamposChapas() {
+  const f = corParaFita(materiais), primeiro = materiais.find(m => (m.cor || '').trim());
+  document.getElementById('fCorMdf').value = primeiro ? primeiro.cor.trim() : '';
+  document.getElementById('fEspessura').value = f.esp || (primeiro ? primeiro.espessura || '' : '');
+  const temQ = materiais.some(m => m.qtd != null && m.qtd !== ''), temR = materiais.some(m => m.recebidas != null && m.recebidas !== '');
+  const tq = materiais.reduce((t, m) => t + (Number(m.qtd) || 0), 0), tr = materiais.reduce((t, m) => t + (Number(m.recebidas) || 0), 0);
+  document.getElementById('fChapas').value = temQ ? tq : '';
+  document.getElementById('fChapasRecebidas').value = temR ? tr : '';
+  document.getElementById('matTotal').innerHTML = (temQ || temR) ? `Total: <b>${fmtNum(tq)}</b> chapa(s) usada(s)${temR ? ` · ${fmtNum(tr)} recebida(s) da loja · saldo ${fmtNum(tr - tq)}` : ''}` : '';
+}
+function renderMateriais() {
+  const el = document.getElementById('matList');
+  el.innerHTML = materiais.map((m, i) => `<div class="fita">
+      <div class="fita-top"><b>Chapa ${i + 1}${m.aplicacao ? ' · ' + esc(m.aplicacao) : ''}</b>${materiais.length > 1 ? `<button type="button" class="btn-rm" data-rmmat="${i}" title="Remover">×</button>` : ''}</div>
+      <div class="row2">
+        <div><label>Aplicação</label><select data-mi="${i}" data-mk="aplicacao"><option value="">—</option>${APLICACOES.map(a => `<option ${m.aplicacao === a ? 'selected' : ''}>${a}</option>`).join('')}</select></div>
+        <div><label>Espessura</label><select data-mi="${i}" data-mk="espessura"><option value="">—</option>${ESP_CHAPA.map(e => `<option value="${e}" ${String(m.espessura) === e ? 'selected' : ''}>${e} mm</option>`).join('')}</select></div>
+      </div>
+      <label>Cor do MDF${i === 0 ? ' *' : ''}</label>
+      <input data-mi="${i}" data-mk="cor" list="coresList" placeholder="Ex: Branco TX" value="${esc(m.cor || '')}">
+      <div class="row2">
+        <div><label>Chapas usadas</label><input data-mi="${i}" data-mk="qtd" type="number" min="0" step="1" inputmode="numeric" placeholder="0" value="${m.qtd ?? ''}"></div>
+        <div><label>Recebidas da loja</label><input data-mi="${i}" data-mk="recebidas" type="number" min="0" step="1" inputmode="numeric" placeholder="0" value="${m.recebidas ?? ''}"></div>
+      </div>
+      <div class="fita-estoque" id="matHint${i}">${hintMaterial(m)}</div>
+    </div>`).join('');
+  el.querySelectorAll('[data-mk]').forEach(inp => {
+    const sel = inp.tagName === 'SELECT';
+    inp[sel ? 'onchange' : 'oninput'] = () => {
+      const i = Number(inp.dataset.mi), k = inp.dataset.mk;
+      let v = inp.value;
+      if (k === 'qtd' || k === 'recebidas') v = v === '' ? null : Number(v);
+      materiais[i][k] = v;
+      sincronizarCamposChapas();
+      if (sel) renderMateriais(); else { const h = document.getElementById('matHint' + i); if (h) h.innerHTML = hintMaterial(materiais[i]); }
+      if (fitas.length && (k === 'espessura' || k === 'aplicacao' || k === 'cor')) renderFitas();
+    };
+  });
+  el.querySelectorAll('[data-rmmat]').forEach(b => b.onclick = () => { materiais.splice(Number(b.dataset.rmmat), 1); renderMateriais(); if (fitas.length) renderFitas(); });
+  sincronizarCamposChapas();
+}
+document.getElementById('btnAddMat').onclick = () => {
+  const n = linhaPadrao(materiais.length);
+  const ant = materiais[materiais.length - 1];
+  if (ant && ant.espessura && !n.espessura) n.espessura = ant.espessura === '15' && n.aplicacao === 'Tamponamento' ? '18' : ant.espessura;
+  materiais.push(n); renderMateriais();
+};
+function limparMateriais(lista) { return lista.filter(m => (m.cor || '').trim() || m.qtd != null || m.recebidas != null).map(m => ({ aplicacao: m.aplicacao || '', cor: (m.cor || '').trim(), espessura: m.espessura || '', qtd: m.qtd ?? null, recebidas: m.recebidas ?? null })); }
+
+// ===== ETIQUETA =====
+const ETQ_CORES = {'Verde-limão':'#a8e063','Vermelho':'#e53935','Roxo':'#8e3fd1','Amarelo':'#f5e22d','Azul':'#2f8ee8','Azul-claro':'#9fd3f2','Branco':'#ffffff','Laranja':'#f57c1f','Laranja-claro':'#f6b25c','Verde':'#43c94a'};
+function atualizarEtq() {
+  const v = document.getElementById('fEtiqueta').value, el = document.getElementById('etqPreview');
+  el.style.background = ETQ_CORES[v] || 'transparent';
+  el.style.boxShadow = v ? 'inset 0 0 0 1px rgba(0,0,0,.3)' : 'inset 0 0 0 1px var(--border)';
+}
+document.getElementById('fEtiqueta').addEventListener('change', atualizarEtq);
+
+// ===== BACKUP E RESTAURAÇÃO =====
+let bkDados = null;
+function bkStatus(t, cor) { const el = document.getElementById('bkStatus'); el.textContent = t; el.style.color = cor || 'var(--text-dim)'; }
+function mostrarUltimoBackup() {
+  let t = '';
+  try { const u = Number(localStorage.getItem('ifc3d-ultimo-backup')); if (u) t = 'Último backup baixado neste aparelho: ' + fmtDateTime(u); } catch (e) {}
+  document.getElementById('bkUltimo').textContent = t || 'Nenhum backup baixado ainda neste aparelho.';
+}
+document.getElementById('btnBackup').onclick = async () => {
+  if (!ehAdmin) { await aviso('Backup e restauração são do perfil Administrativo.'); return; }
+  bkDados = null;
+  document.getElementById('bkArquivo').value = '';
+  const r = document.getElementById('bkRestaurar'); r.disabled = true; r.style.opacity = .5;
+  bkStatus('');
+  mostrarUltimoBackup();
+  document.getElementById('bkBg').hidden = false;
+};
+document.getElementById('bkFechar').onclick = () => { document.getElementById('bkBg').hidden = true; };
+
+document.getElementById('bkBaixar').onclick = async () => {
+  if (!db) { bkStatus('Sem conexão com os dados. Recarregue a página.', 'var(--st-cancelado)'); return; }
+  bkStatus('Preparando backup...');
+  try {
+    const [so, sm, sf] = await Promise.all([db.collection('ordens').limit(1000).get(), db.collection('movimentos').limit(1000).get(), db.collection('movFitas').limit(1000).get()]);
+    const conv = snap => snap.docs.filter(d => d.exists).map(d => ({ id: d.id, ...(d.data() || {}) }));
+    const agora = new Date();
+    const dados = { app: 'iFC3D Forja - Ordens de Serviço', formato: 1, geradoEm: agora.toISOString(), ordens: conv(so), movimentos: conv(sm), movFitas: conv(sf) };
+    const p = n => String(n).padStart(2, '0');
+    const nome = `backup-ifc3d-os-${agora.getFullYear()}-${p(agora.getMonth() + 1)}-${p(agora.getDate())}-${p(agora.getHours())}${p(agora.getMinutes())}.json`;
+    const downloads = await claude.use('downloads');
+    if (!downloads) { bkStatus('Download indisponível nesta visualização.', 'var(--st-cancelado)'); return; }
+    await downloads.save({ filename: nome, data: JSON.stringify(dados, null, 1) });
+    try { localStorage.setItem('ifc3d-ultimo-backup', String(Date.now())); } catch (e) {}
+    mostrarUltimoBackup();
+    bkStatus(`Backup salvo: ${dados.ordens.length} OS, ${dados.movimentos.length} movimentações de chapa e ${dados.movFitas.length} de fita.`, 'var(--st-concluido)');
+  } catch (e) {
+    bkStatus(e && e.code === 'declined' ? 'Download cancelado.' : 'Não foi possível gerar o backup agora. Tente de novo.', 'var(--st-cancelado)');
+  }
+};
+
+document.getElementById('bkArquivo').onchange = (e) => {
+  const f = e.target.files && e.target.files[0];
+  const r = document.getElementById('bkRestaurar');
+  bkDados = null; r.disabled = true; r.style.opacity = .5;
+  if (!f) { bkStatus(''); return; }
+  const leitor = new FileReader();
+  leitor.onload = () => {
+    try {
+      const d = JSON.parse(leitor.result);
+      if (!d || !Array.isArray(d.ordens) || !Array.isArray(d.movimentos)) throw new Error('formato');
+      bkDados = d;
+      r.disabled = false; r.style.opacity = 1;
+      const quando = d.geradoEm ? fmtDateTime(Date.parse(d.geradoEm)) : 'data desconhecida';
+      bkStatus(`Backup de ${quando}: ${d.ordens.length} OS e ${d.movimentos.length + (d.movFitas || []).length} movimentações de estoque.`);
+    } catch (err) {
+      bkStatus('Esse arquivo não é um backup deste app.', 'var(--st-cancelado)');
+    }
+  };
+  leitor.readAsText(f);
+};
+
+async function gravarComRetentativa(ref, dados) {
+  try { await ref.set(dados); }
+  catch (e) {
+    if (e && (e.code === 'unavailable' || e.code === 'resource_exhausted')) { await new Promise(r => setTimeout(r, 1500)); await ref.set(dados); }
+    else throw e;
+  }
+}
+
+document.getElementById('bkRestaurar').onclick = async () => {
+  if (!ehAdmin) return;
+  if (!bkDados || !db) return;
+  const n = bkDados.ordens.length, m = bkDados.movimentos.length + (bkDados.movFitas || []).length;
+  document.getElementById('bkBg').hidden = true;
+  const ok = await confirmar(`Restaurar ${n} OS e ${m} movimentações do backup?\n\nAs OS que estão no arquivo voltam a ficar exatamente como estavam no backup. OS criadas depois do backup não são apagadas.`);
+  document.getElementById('bkBg').hidden = false;
+  if (!ok) return;
+  const btn = document.getElementById('bkRestaurar'); btn.disabled = true; btn.style.opacity = .5;
+  let feitos = 0, falhas = 0;
+  const total = n + m;
+  const lotes = [['ordens', bkDados.ordens], ['movimentos', bkDados.movimentos], ['movFitas', bkDados.movFitas || []]];
+  for (const [colecao, lista] of lotes) {
+    for (const item of lista) {
+      if (!item || !item.id) { falhas++; continue; }
+      const { id, ...dados } = item;
+      try { await gravarComRetentativa(db.collection(colecao).doc(String(id)), dados); feitos++; }
+      catch (e) { falhas++; }
+      if ((feitos + falhas) % 10 === 0) bkStatus(`Restaurando... ${feitos + falhas} de ${total}`);
+    }
+  }
+  bkStatus(falhas ? `Restaurados ${feitos} de ${total}. ${falhas} falharam, tente restaurar de novo.` : `Pronto: ${feitos} registros restaurados.`, falhas ? 'var(--st-cancelado)' : 'var(--st-concluido)');
+};
+
+// ===== NÍVEL DE ACESSO DE QUEM ESTÁ USANDO =====
+let ehAdmin = true; // sem informação da plataforma, não bloqueia nada
+function aplicarPerfil() {
+  document.getElementById('btnBackup').hidden = !ehAdmin;
+  document.getElementById('btnSync').hidden = !ehAdmin;
+  if (document.getElementById('viewEstoque').style.display !== 'none') { renderEstoque(); renderEstoqueFitas(); }
+}
+async function verificarAcesso() {
+  let u = null;
+  try { u = await claude.use('user'); } catch (e) {}
+  if (!u) return;
+  let dono = false, editor = false, grava = null;
+  try { [dono, editor, grava] = await Promise.all([u.isOwner(), u.canEdit(), u.can('data.write')]); } catch (e) { return; }
+  const tag = document.getElementById('acessoTag');
+  ehAdmin = !!(dono || editor);
+  aplicarPerfil();
+  tag.textContent = ehAdmin ? 'Perfil: Administrativo' : grava ? 'Perfil: Equipe' : grava === false ? 'Sem permissão para salvar' : '';
+  tag.hidden = !tag.textContent;
+  if (grava === false) {
+    tag.style.color = 'var(--st-cancelado)'; tag.style.borderColor = 'var(--st-cancelado)';
+    const av = document.getElementById('avisoAcesso');
+    document.getElementById('avisoAcessoTexto').innerHTML = '<b>Sua conta não tem permissão para ver nem salvar as ordens de serviço.</b><br>Isso acontece quando a conta do Claude usada não é da organização iFC3D e o app está compartilhado como "Qualquer pessoa com o link". Peça ao administrador para liberar o seu acesso.';
+    av.hidden = false;
+  }
+}
+async function init() {
+  renderFilters();
+  renderStatusRow(currentStatus);
+  renderDash();
+  try {
+    db = await claude.use('db');
+  } catch (e) {}
+  if (!db) {
+    statusNote.textContent = 'Não foi possível conectar ao armazenamento compartilhado. Recarregue a página.';
+    return;
+  }
+  verificarAcesso();
+  db.collection('ordens').orderBy('criadoEm', 'desc').limit(500).onSnapshot(
+    (snap) => {
+      ordens = snap.docs.filter(d => d.exists).map(d => ({ id: d.id, ...(d.data() || {}) }));
+      renderList();
+      renderDash();
+      atualizarListasCores();
+      if (document.getElementById('viewEstoque').style.display !== 'none') { renderEstoque(); renderEstoqueFitas(); }
+    },
+    (err) => {
+      statusNote.textContent = 'Conexão instável com os dados compartilhados.';
+    }
+  );
+  db.collection('movFitas').limit(1000).onSnapshot(
+    (snap) => {
+      movFitas = snap.docs.filter(d => d.exists).map(d => ({ id: d.id, ...(d.data() || {}) }));
+      if (document.getElementById('viewEstoque').style.display !== 'none') renderEstoqueFitas();
+      if (document.getElementById('modalBg').classList.contains('open') && fitas.length) renderFitas();
+    },
+    () => {}
+  );
+  db.collection('movimentos').limit(1000).onSnapshot(
+    (snap) => {
+      movimentos = snap.docs.filter(d => d.exists).map(d => ({ id: d.id, ...(d.data() || {}) }));
+      atualizarListasCores();
+      if (document.getElementById('viewEstoque').style.display !== 'none') renderEstoque();
+      if (document.getElementById('modalBg').classList.contains('open')) atualizarEstoqueHint();
+    },
+    () => { document.getElementById('movAviso').textContent = 'Conexão instável com o estoque. Recarregue a página.'; document.getElementById('movAviso').style.display = 'block'; }
+  );
+}
+init();
+</script>
+<script>
+// ===== JAVIS — adaptador do app de Ordens de Serviço =====
+(function () {
+  const STS = ['Aguardando', 'Em Produção', 'Concluído', 'Entregue', 'Cancelado'];
+  const semAc = t => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+  const hojeISO = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  const aberta = o => o.status === 'Aguardando' || o.status === 'Em Produção';
+  const atrasada = o => aberta(o) && o.prazo && o.prazo < hojeISO();
+
+  function resumoOS(o) {
+    const av = computeAvaliacao(o);
+    return {
+      numero: o.numero, loja: o.cliente, clienteFinal: o.clienteFinal || undefined, status: o.status,
+      prazo: o.prazo || undefined, atrasada: atrasada(o) || undefined, avaliacao: av ? av.label : undefined,
+      tecnologia: o.tecnologia, responsavel: o.responsavel || undefined, ambiente: o.ambiente || undefined,
+      mdf: coresDaOS(o).join(' / ') || undefined, etiqueta: o.etiqueta || undefined,
+    };
+  }
+  function acharOS(ref) {
+    const r = semAc(ref).replace(/^o\.?\s*s\.?\s*/, '').replace(/\s+/g, '');
+    if (!r) throw new Error('Informe o número da OS.');
+    let achadas = ordens.filter(o => semAc(o.numero).replace(/\s+/g, '') === r || semAc(o.numero) === 'os-' + r);
+    if (!achadas.length) {
+      const dig = r.replace(/\D/g, '');
+      if (dig) achadas = ordens.filter(o => String(o.numero || '').replace(/\D/g, '').endsWith(dig));
+    }
+    if (!achadas.length) {
+      achadas = ordens.filter(o => [o.cliente, o.clienteFinal].some(c => semAc(c).includes(semAc(ref))));
+      if (achadas.length > 1) throw new Error('Mais de uma OS para "' + ref + '": ' + achadas.slice(0, 8).map(o => o.numero + ' (' + o.cliente + (o.clienteFinal ? ' / ' + o.clienteFinal : '') + ', ' + o.status + ')').join('; ') + '. Pergunte qual.');
+    }
+    if (!achadas.length) throw new Error('Nenhuma OS encontrada para "' + ref + '".');
+    if (achadas.length > 1) throw new Error('Várias OS combinam: ' + achadas.slice(0, 8).map(o => o.numero + ' (' + o.cliente + ')').join('; ') + '. Pergunte qual.');
+    return achadas[0];
+  }
+  function statusValido(s) {
+    const a = semAc(s);
+    const m = STS.find(x => semAc(x) === a) || STS.find(x => semAc(x).startsWith(a.slice(0, 5)));
+    if (!m) throw new Error('Status inválido. Use: ' + STS.join(', '));
+    return m;
+  }
+
+  window.JAVIS_APP = {
+    nome: 'Ordens de Serviço',
+    contexto() {
+      if (!ordens.length) return 'Nenhuma OS carregada ainda.';
+      const cont = STS.map(s => s + ': ' + ordens.filter(o => o.status === s).length).join(', ');
+      const atr = ordens.filter(atrasada);
+      const em7 = new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10);
+      const prox = ordens.filter(o => aberta(o) && o.prazo && o.prazo >= hojeISO() && o.prazo <= em7);
+      const linha = o => `${o.numero} ${o.cliente}${o.clienteFinal ? ' / ' + o.clienteFinal : ''} (${o.status}, prazo ${o.prazo})`;
+      return [
+        `Total de OS: ${ordens.length}. Por status: ${cont}.`,
+        `Atrasadas (prazo vencido e ainda abertas): ${atr.length ? atr.slice(0, 10).map(linha).join('; ') : 'nenhuma'}.`,
+        `Prazo nos próximos 7 dias: ${prox.length ? prox.slice(0, 10).map(linha).join('; ') : 'nenhuma'}.`,
+        `Equipe: Fabrício (CNC Nesting), Guilherme (Coladeira CNC), Thomaz (CNC Furo Topo). Perfil de quem usa: ${ehAdmin ? 'administrativo' : 'equipe'}.`,
+      ].join('\n');
+    },
+    ferramentas: [
+      {
+        name: 'listar_os',
+        description: 'Lista ordens de serviço, filtrando opcionalmente por status, por texto (loja, cliente, cor do MDF, responsável, tecnologia) ou só as atrasadas. Retorna até 25 OS resumidas, mais recentes primeiro.',
+        inputSchema: { type: 'object', properties: {
+          status: { type: 'string', enum: STS }, busca: { type: 'string' }, so_atrasadas: { type: 'boolean' }, limite: { type: 'number' } } },
+        execute({ status, busca, so_atrasadas, limite }) {
+          let l = ordens;
+          if (status) l = l.filter(o => o.status === statusValido(status));
+          if (so_atrasadas) l = l.filter(atrasada);
+          if (busca) { const b = semAc(busca); l = l.filter(o => semAc([o.numero, o.cliente, o.clienteFinal, o.responsavel, o.tecnologia, o.ambiente, o.descricao, ...coresDaOS(o)].join(' ')).includes(b)); }
+          return { total: l.length, ordens: l.slice(0, Math.min(Number(limite) || 25, 25)).map(resumoOS) };
+        },
+      },
+      {
+        name: 'detalhe_os',
+        description: 'Mostra todos os detalhes de uma OS: chapas (cor, espessura, usadas, recebidas), fitas de borda, sobras, histórico de status, contato, descrição e observações. Aceita o número completo, os últimos dígitos ou o nome do cliente.',
+        inputSchema: { type: 'object', properties: { numero: { type: 'string' } }, required: ['numero'] },
+        execute({ numero }) {
+          const o = acharOS(numero);
+          return { ...resumoOS(o), contato: o.contato, descricao: o.descricao, material: o.material, observacoes: o.observacoes,
+            chapas: materiaisDaOS(o), fitas: fitasDaOS(o), fitaTotalMetros: totalFitas(fitasDaOS(o)), sobras: o.sobras, destinoSobras: o.destinoSobras,
+            terceirizado: o.terceirizado ? o.fornecedor : undefined, dataSolicitacao: o.dataSolicitacao,
+            historico: historicoDaOS(o).map(h => h.status + ' em ' + new Date(h.em).toLocaleString('pt-BR')) };
+        },
+      },
+      {
+        name: 'mudar_status_os',
+        description: 'Muda o status de uma OS (Aguardando, Em Produção, Concluído, Entregue, Cancelado). Registra o histórico e dá baixa automática no estoque de chapas e fitas, como o app faz. Pede confirmação na tela.',
+        inputSchema: { type: 'object', properties: { numero: { type: 'string' }, status: { type: 'string', enum: STS } }, required: ['numero', 'status'] },
+        escreve: true,
+        confirmar({ numero, status }) {
+          try { const o = acharOS(numero); return `Mudar a ${o.numero} (${o.cliente}) de "${o.status}" para "${statusValido(status)}"`; }
+          catch (e) { return `Mudar a OS ${numero} para "${status}"`; }
+        },
+        async execute({ numero, status }) {
+          if (!db) throw new Error('Sem conexão com os dados.');
+          const o = acharOS(numero), novo = statusValido(status);
+          if (o.status === novo) return `A ${o.numero} já está em ${novo}.`;
+          const agora = Date.now();
+          const data = { status: novo, statusAtualizadoEm: agora, atualizadoEm: agora, historico: [...historicoDaOS(o), { status: novo, em: agora }] };
+          if (novo === 'Concluído' && !o.concluidoEm) data.concluidoEm = agora;
+          if (novo === 'Entregue' && !o.entregueEm) data.entregueEm = agora;
+          try { await db.collection('ordens').doc(o.id).update(data); }
+          catch (e) { throw new Error(e && e.code === 'invalid_argument' ? 'Sem permissão para editar.' : 'Não consegui salvar agora.'); }
+          const completa = { ...o, ...data };
+          let estoque = 'estoque atualizado';
+          try { await syncMovimentosOS(o.id, completa); } catch (e) { estoque = 'ATENÇÃO: a baixa no estoque falhou, abra a OS e salve de novo'; }
+          try { window.javisMinimizar(); oferecerAviso(completa); } catch (e) {}
+          return `OK: ${o.numero} agora está em ${novo}; ${estoque}. Se a loja tiver WhatsApp no contato, a tela já mostra o botão para avisá-la.`;
+        },
+      },
+      {
+        name: 'abrir_os',
+        description: 'Abre a ficha de uma OS na tela para o usuário ver ou editar (fecha o painel do Javis).',
+        inputSchema: { type: 'object', properties: { numero: { type: 'string' } }, required: ['numero'] },
+        execute({ numero }) { const o = acharOS(numero); window.javisMinimizar(); openEdit(o.id); return 'Ficha da ' + o.numero + ' aberta na tela.'; },
+      },
+      {
+        name: 'preparar_nova_os',
+        description: 'Abre o formulário de NOVA OS já preenchido com o que o usuário ditou, para ele conferir e tocar em Salvar (nada é salvo sem ele). Datas no formato AAAA-MM-DD.',
+        inputSchema: { type: 'object', properties: {
+          loja: { type: 'string' }, cliente_final: { type: 'string' }, contato: { type: 'string' },
+          tecnologia: { type: 'string', enum: ['CNC Nesting', 'Coladeira CNC', 'CNC Furo Topo', 'Fita de Borda', 'Impressão 3D', 'Corte a Laser CO2', 'Solda a Laser', 'Galvanoplastia', 'Outro'] },
+          prazo: { type: 'string' }, descricao: { type: 'string' }, ambiente: { type: 'string' }, material: { type: 'string' },
+          cor_mdf: { type: 'string' }, espessura_mm: { type: 'string' }, chapas_usadas: { type: 'number' }, chapas_recebidas: { type: 'number' },
+          responsavel: { type: 'string' }, observacoes: { type: 'string' } } },
+        execute(d) {
+          window.javisMinimizar(); openNew();
+          const set = (id, v) => { if (v != null && v !== '') document.getElementById(id).value = v; };
+          set('fCliente', d.loja); set('fClienteFinal', d.cliente_final); set('fContato', d.contato); set('fTecnologia', d.tecnologia);
+          set('fPrazo', d.prazo); set('fDescricao', d.descricao); set('fAmbiente', d.ambiente); set('fMaterial', d.material);
+          set('fResponsavel', d.responsavel); set('fObs', d.observacoes);
+          if (d.cor_mdf || d.chapas_usadas != null) {
+            materiais = [{ aplicacao: 'Caixaria', cor: d.cor_mdf || '', espessura: String(d.espessura_mm || '').replace(/\D/g, ''), qtd: d.chapas_usadas ?? null, recebidas: d.chapas_recebidas ?? null }];
+            renderMateriais();
+          }
+          atualizarBotaoAviso();
+          return 'Formulário de nova OS aberto e preenchido. O usuário precisa conferir e tocar em Salvar.';
+        },
+      },
+      {
+        name: 'estoque_chapas',
+        description: 'Saldo do estoque de chapas de MDF por cor e espessura: saldo, reservado em OS aguardando e disponível. Filtro opcional por cor.',
+        inputSchema: { type: 'object', properties: { cor: { type: 'string' } } },
+        execute({ cor }) {
+          let l = calcularEstoque();
+          if (cor) l = l.filter(i => semAc(i.cor).includes(semAc(cor)));
+          return { itens: l.slice(0, 40).map(i => ({ cor: i.cor, espessura: i.esp ? i.esp + ' mm' : 's/ esp.', saldo: i.saldo, reservado: i.reservado, disponivel: i.disponivel })) };
+        },
+      },
+      {
+        name: 'estoque_fitas',
+        description: 'Saldo do estoque de fitas de borda em metros, por largura, espessura e cor. Filtro opcional por cor ou largura.',
+        inputSchema: { type: 'object', properties: { busca: { type: 'string' } } },
+        execute({ busca }) {
+          let l = calcularEstoqueFitas();
+          if (busca) l = l.filter(i => semAc(i.cor).includes(semAc(busca)) || String(i.largura).includes(String(busca).replace(/\D/g, '') || '§'));
+          return { itens: l.slice(0, 40).map(i => ({ largura: largFitaRot(i.largura), espessura: i.esp + ' mm', cor: i.cor, saldo_m: i.saldo, reservado_m: i.reservado, disponivel_m: i.disponivel })) };
+        },
+      },
+    ],
+  };
+})();
+
+</script>
+<script>
+// ===== JAVIS — assistente de voz da iFC3D Forja (núcleo reutilizável) =====
+// Cada app define window.JAVIS_APP = { nome, contexto(), ferramentas: [...] } antes deste script.
+// Ferramenta: { name, description, inputSchema?, escreve?: bool, confirmar?(input) -> texto, execute(input) }
+(function () {
+  const APP = window.JAVIS_APP;
+  if (!APP) return;
+
+  const css = `
+  #jv-fab{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));width:60px;height:60px;border-radius:50%;border:none;cursor:pointer;z-index:400;
+    background:radial-gradient(circle at 50% 50%,#fff6dc 0 14%,#e9c46a 22%,#c9a24b 40%,#1a1a1a 62%);box-shadow:0 0 0 2px #c9a24b,0 0 18px rgba(201,162,75,.55),0 6px 16px rgba(0,0,0,.45);
+    display:flex;align-items:center;justify-content:center;font:700 13px 'Barlow Condensed',sans-serif;color:#1a1408;letter-spacing:.5px}
+  #jv-fab.ouvindo{animation:jvpulse 1.1s ease-in-out infinite}
+  #jv-fab.falando{animation:jvpulse .6s ease-in-out infinite}
+  @keyframes jvpulse{0%,100%{box-shadow:0 0 0 2px #c9a24b,0 0 14px rgba(201,162,75,.5)}50%{box-shadow:0 0 0 4px #e9c46a,0 0 32px rgba(233,196,106,.9)}}
+  #jv-painel{position:fixed;left:0;right:0;bottom:0;z-index:401;display:none;justify-content:center}
+  #jv-painel.aberto{display:flex}
+  #jv-caixa{width:100%;max-width:560px;height:min(78vh,640px);background:#141414;color:#ece7dc;border-top:2px solid #c9a24b;border-radius:18px 18px 0 0;
+    display:flex;flex-direction:column;box-shadow:0 -10px 40px rgba(0,0,0,.6);font-family:'Barlow Condensed',sans-serif;padding-bottom:env(safe-area-inset-bottom,0px)}
+  #jv-topo{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid #2c2c2c}
+  #jv-topo .jv-nucleo{width:30px;height:30px;border-radius:50%;flex-shrink:0;background:radial-gradient(circle,#fff6dc 0 18%,#e9c46a 30%,#c9a24b 48%,#141414 70%);box-shadow:0 0 10px rgba(201,162,75,.6)}
+  #jv-topo b{font-family:'Bebas Neue',sans-serif;font-size:24px;color:#c9a24b;letter-spacing:1px;font-weight:400}
+  #jv-topo span{font-size:13px;color:#9a938a;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .jv-ico{background:transparent;border:1px solid #2c2c2c;color:#ece7dc;border-radius:8px;min-width:38px;height:36px;font-size:15px;cursor:pointer;font-family:inherit}
+  .jv-ico.on{border-color:#c9a24b;color:#c9a24b}
+  #jv-msgs{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+  .jv-m{max-width:86%;padding:9px 12px;border-radius:12px;font-size:17px;line-height:1.3;white-space:pre-wrap;word-wrap:break-word}
+  .jv-m.eu{align-self:flex-end;background:#c9a24b;color:#1a1408;border-bottom-right-radius:4px}
+  .jv-m.jv{align-self:flex-start;background:#1f1f1f;border:1px solid #2c2c2c;border-bottom-left-radius:4px}
+  .jv-m.sis{align-self:center;background:none;color:#9a938a;font-size:14px;text-align:center;padding:2px 8px}
+  .jv-conf{align-self:stretch;background:#1f1a10;border:1px solid #c9a24b;border-radius:12px;padding:10px 12px;font-size:16px}
+  .jv-conf div{margin-bottom:10px}
+  .jv-conf button{padding:9px 14px;border-radius:8px;font:700 16px 'Barlow Condensed',sans-serif;cursor:pointer;margin-right:8px}
+  .jv-sim{background:#c9a24b;color:#1a1408;border:none}.jv-nao{background:transparent;color:#9a938a;border:1px solid #2c2c2c}
+  #jv-base{display:flex;gap:8px;padding:10px 12px;border-top:1px solid #2c2c2c;align-items:flex-end}
+  #jv-txt{flex:1;resize:none;min-height:44px;max-height:110px;background:#1f1f1f;border:1px solid #2c2c2c;color:#ece7dc;border-radius:10px;padding:10px;font:17px 'Barlow Condensed',sans-serif}
+  #jv-mic{width:52px;height:46px;border-radius:10px;border:none;background:#c9a24b;color:#1a1408;font-size:22px;cursor:pointer;flex-shrink:0}
+  #jv-mic.ouvindo{background:#b3423c;color:#fff}
+  #jv-env{width:52px;height:46px;border-radius:10px;border:1px solid #c9a24b;background:transparent;color:#c9a24b;font:700 15px 'Barlow Condensed',sans-serif;cursor:pointer;flex-shrink:0}
+  #jv-cfg{display:none;padding:10px 14px;border-bottom:1px solid #2c2c2c;font-size:15px;color:#9a938a}
+  #jv-cfg.aberto{display:block}
+  #jv-cfg select{width:100%;margin-top:4px;background:#1f1f1f;color:#ece7dc;border:1px solid #2c2c2c;border-radius:8px;padding:8px;font:16px 'Barlow Condensed',sans-serif}
+  #jv-cfg label{display:flex;align-items:center;gap:8px;margin-top:10px;color:#ece7dc;font-size:15px}
+  #jv-cfg input[type=range]{flex:1;width:auto;padding:0;background:none;border:none}
+  #jv-cfg input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;padding:0}
+  @media (prefers-reduced-motion:reduce){#jv-fab.ouvindo,#jv-fab.falando{animation:none}}`;
+  const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
+
+  const wrap = document.createElement('div');
+  wrap.innerHTML = `
+  <button id="jv-fab" aria-label="Abrir o Javis">JAVIS</button>
+  <div id="jv-painel" role="dialog" aria-label="Javis">
+    <div id="jv-caixa">
+      <div id="jv-topo"><div class="jv-nucleo"></div><b>JAVIS</b><span id="jv-sub"></span>
+        <button class="jv-ico on" id="jv-som" title="Voz ligada">🔊</button>
+        <button class="jv-ico" id="jv-ajuste" title="Ajustes da voz">⚙</button>
+        <button class="jv-ico" id="jv-fechar" title="Fechar">✕</button></div>
+      <div id="jv-cfg">
+        Voz do Javis
+        <select id="jv-voz"></select>
+        <div id="jv-dica" hidden style="margin-top:8px;color:#e9c46a;font-size:14px;line-height:1.35">Este celular não tem voz masculina em português instalada, então o Javis engrossa a voz feminina.<br>
+          <b>iPhone:</b> Ajustes › Acessibilidade › Conteúdo Falado › Vozes › Português (Brasil) › baixe <b>Felipe</b>.<br>
+          <b>Android:</b> Configurações › Acessibilidade › Saída de conversão de texto em voz › Mecanismo do Google › Português (Brasil) › escolha uma voz masculina e baixe.<br>
+          Depois feche e abra o app de novo e escolha a voz aqui.</div>
+        <label>Velocidade <input type="range" id="jv-vel" min="0.7" max="1.4" step="0.05"></label>
+        <label>Tom <input type="range" id="jv-tom" min="0.5" max="1.3" step="0.05"></label>
+        <label><input type="checkbox" id="jv-continuo"> Conversa contínua (volta a ouvir depois de responder)</label>
+        <button class="jv-ico" id="jv-testar" style="margin-top:10px;padding:0 12px">Testar voz</button>
+        <button class="jv-ico" id="jv-limpar" style="margin-top:10px;padding:0 12px">Limpar conversa</button>
+      </div>
+      <div id="jv-msgs" aria-live="polite"></div>
+      <div id="jv-base">
+        <textarea id="jv-txt" rows="1" placeholder="Fale ou digite para o Javis..."></textarea>
+        <button id="jv-env" aria-label="Enviar">Enviar</button>
+        <button id="jv-mic" aria-label="Falar">🎙</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.appendChild(wrap);
+
+  const $ = id => document.getElementById(id);
+  const fab = $('jv-fab'), painel = $('jv-painel'), msgs = $('jv-msgs'), txt = $('jv-txt'), mic = $('jv-mic');
+  $('jv-sub').textContent = APP.nome;
+
+  // ---------- preferências (só neste aparelho) ----------
+  const PREF_KEY = 'javis-prefs';
+  let prefs = { voz: '', vel: 1.0, tom: null, som: true, continuo: false };
+  try { Object.assign(prefs, JSON.parse(localStorage.getItem(PREF_KEY) || '{}')); } catch (e) {}
+  if (!prefs.tomManual) prefs.tom = null;
+  const MASC = /antonio|daniel|felipe|ricardo|fabio|humberto|joaquim|duarte|cristiano|male|mascul|homem|#male/i;
+  const ehMasc = v => !!v && MASC.test(v.name + ' ' + (v.voiceURI || ''));
+  const salvarPrefs = () => { try { localStorage.setItem(PREF_KEY, JSON.stringify(prefs)); } catch (e) {} };
+
+  // ---------- mensagens na tela ----------
+  function bolha(tipo, texto) {
+    const d = document.createElement('div'); d.className = 'jv-m ' + tipo; d.textContent = texto;
+    msgs.appendChild(d); msgs.scrollTop = msgs.scrollHeight; return d;
+  }
+  function confirmarNaTela(texto) {
+    return new Promise(res => {
+      const c = document.createElement('div'); c.className = 'jv-conf';
+      const p = document.createElement('div'); p.textContent = texto;
+      const sim = document.createElement('button'); sim.className = 'jv-sim'; sim.textContent = 'Confirmar';
+      const nao = document.createElement('button'); nao.className = 'jv-nao'; nao.textContent = 'Cancelar';
+      c.append(p, sim, nao); msgs.appendChild(c); msgs.scrollTop = msgs.scrollHeight;
+      falar(texto + '. Confirma?');
+      const fim = v => { c.remove(); bolha('sis', v ? 'Confirmado.' : 'Cancelado.'); res(v); };
+      sim.onclick = () => fim(true); nao.onclick = () => fim(false);
+    });
+  }
+
+  // ---------- voz (fala) ----------
+  const tts = window.speechSynthesis;
+  let vozes = [];
+  function carregarVozes() {
+    if (!tts) return;
+    vozes = tts.getVoices().filter(v => /^pt/i.test(v.lang));
+    const sel = $('jv-voz');
+    sel.innerHTML = vozes.length ? vozes.map((v, i) => `<option value="${i}">${v.name} (${v.lang})</option>`).join('') : '<option>Nenhuma voz em português neste aparelho</option>';
+    let i = vozes.findIndex(v => v.name === prefs.voz);
+    if (i < 0) i = vozes.findIndex(v => /pt-BR/i.test(v.lang) && ehMasc(v));
+    if (i < 0) i = vozes.findIndex(v => ehMasc(v));
+    if (i < 0) i = vozes.findIndex(v => /pt-BR/i.test(v.lang));
+    if (i < 0) i = 0;
+    sel.value = String(i);
+    atualizarDicaVoz();
+  }
+  const vozAtual = () => vozes[Number($('jv-voz').value)];
+  // Sem voz masculina instalada, engrossa a voz para soar mais grave.
+  const tomEfetivo = () => prefs.tomManual && prefs.tom != null ? prefs.tom : (ehMasc(vozAtual()) ? 0.9 : 0.55);
+  function atualizarDicaVoz() {
+    const d = $('jv-dica'); if (!d) return;
+    const temMasc = vozes.some(ehMasc);
+    d.hidden = temMasc;
+    $('jv-tom').value = tomEfetivo();
+  }
+  if (tts) { carregarVozes(); tts.onvoiceschanged = carregarVozes; }
+  function limparParaFala(t) {
+    return String(t).replace(/[*_#`>|]/g, '').replace(/\bOS-(\d{6})-(\d{3})\b/g, 'O S final $2').replace(/\s+/g, ' ').trim();
+  }
+  let falandoAgora = false;
+  function falar(texto, depois) {
+    if (!tts || !prefs.som || !texto) { if (depois) depois(); return; }
+    tts.cancel();
+    const u = new SpeechSynthesisUtterance(limparParaFala(texto));
+    const v = vozAtual();
+    if (v) { u.voice = v; u.lang = v.lang; } else u.lang = 'pt-BR';
+    u.rate = prefs.vel; u.pitch = tomEfetivo();
+    u.onstart = () => { falandoAgora = true; fab.classList.add('falando'); };
+    u.onend = u.onerror = () => { falandoAgora = false; fab.classList.remove('falando'); if (depois) depois(); };
+    tts.speak(u);
+  }
+  function calar() { if (tts) tts.cancel(); falandoAgora = false; fab.classList.remove('falando'); }
+
+  // ---------- voz (ouvir) ----------
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let rec = null, ouvindo = false, micBloqueado = !SR;
+  function avisoMic() {
+    bolha('sis', 'O microfone do Javis não está liberado nesta tela. Toque na caixa de texto e use o microfone do teclado do celular para ditar.');
+    mic.style.opacity = .4;
+  }
+  function ouvir() {
+    if (micBloqueado) { avisoMic(); txt.focus(); return; }
+    if (ouvindo) { rec && rec.stop(); return; }
+    calar();
+    rec = new SR(); rec.lang = 'pt-BR'; rec.interimResults = true; rec.continuous = false;
+    let final = '';
+    rec.onstart = () => { ouvindo = true; mic.classList.add('ouvindo'); fab.classList.add('ouvindo'); txt.placeholder = 'Ouvindo, senhor...'; };
+    rec.onresult = e => {
+      let parcial = ''; final = '';
+      for (const r of e.results) { if (r.isFinal) final += r[0].transcript; else parcial += r[0].transcript; }
+      txt.value = (final + parcial).trim();
+    };
+    rec.onerror = e => {
+      if (e.error === 'not-allowed' || e.error === 'service-not-allowed' || e.error === 'audio-capture') { micBloqueado = true; avisoMic(); }
+    };
+    rec.onend = () => {
+      ouvindo = false; mic.classList.remove('ouvindo'); fab.classList.remove('ouvindo'); txt.placeholder = 'Fale ou digite para o Javis...';
+      const t = txt.value.trim();
+      if (t && final) enviar();
+    };
+    try { rec.start(); } catch (e) { micBloqueado = true; avisoMic(); }
+  }
+
+  // ---------- cérebro ----------
+  let sample = null, ocupado = false, ctl = null;
+  if (window.claude) claude.use('sample').then(s => { sample = s; }).catch(() => {});
+  let turnos = [];
+  function hoje() {
+    const d = new Date();
+    return d.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }) + ', ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  }
+  function regras() {
+    let ctx = '';
+    try { ctx = APP.contexto ? APP.contexto() : ''; } catch (e) { ctx = '(contexto indisponível)'; }
+    return [
+      'Você é o JAVIS, assistente de voz da iFC3D Forja (iFC Irmãos Ferreira & Carvalho Mobiliário Arquitetado Ltda.), centro de fabricação digital e corte em Sorocaba-SP: mobiliário arquitetado, CNC Nesting, coladeira de borda, furação CNC, impressão 3D, laser CO2, solda a laser e galvanoplastia. Slogan: "Do projeto à realidade".',
+      'Personalidade: um mordomo digital elegante, calmo, educado e eficiente, com um toque de humor seco e discreto. Trate o usuário por "senhor" (ou pelo nome, se ele disser). Nunca diga que é o Jarvis da Marvel; você é o Javis da iFC3D.',
+      'Suas respostas são FALADAS em voz alta pelo celular: responda em português do Brasil, curto (1 a 3 frases na maioria das vezes), sem markdown, sem listas com marcadores, sem emojis. Números de OS: diga só os 3 últimos dígitos quando houver muitos. Valores em reais por extenso natural ("mil e duzentos reais").',
+      `Você está dentro do app "${APP.nome}". Use as ferramentas para consultar e alterar dados deste app; nunca invente dados que não vieram das ferramentas ou do contexto. Se pedirem algo de outro app (orçamentos, pedidos de compra, controle de qualidade, ordens de serviço), explique com elegância que para isso o senhor deve abrir o Javis dentro daquele app.`,
+      'Para alterar dados, chame a ferramenta: a própria tela pede a confirmação do usuário, então não peça confirmação antes. Se o usuário cancelar, aceite sem insistir. Quando abrir um formulário pré-preenchido, diga que ele confira e toque em Salvar.',
+      'Também converse e tire dúvidas gerais (marcenaria, MDF, fitas de borda, produção, gestão, contas rápidas) com conhecimento geral, deixando claro quando é estimativa.',
+      `Agora: ${hoje()}.`,
+      'Situação atual do app:\n' + ctx,
+    ].join('\n\n');
+  }
+  function ferramentas() {
+    return (APP.ferramentas || []).map(f => ({
+      name: f.name, description: f.description, inputSchema: f.inputSchema || { type: 'object', properties: {} },
+      async execute(input, context) {
+        if (f.escreve) {
+          const texto = f.confirmar ? f.confirmar(input) : 'O Javis quer alterar dados';
+          const ok = await confirmarNaTela(texto);
+          if (context.signal.aborted) throw new Error('interrompido');
+          if (!ok) return 'O usuário CANCELOU. Nada foi alterado.';
+        }
+        return await f.execute(input || {});
+      },
+    }));
+  }
+  async function enviar() {
+    const t = txt.value.trim();
+    if (!t || ocupado) return;
+    txt.value = ''; calar();
+    bolha('eu', t);
+    if (!sample) { bolha('sis', 'O Javis ainda está conectando. Tente de novo em alguns segundos.'); return; }
+    turnos.push({ role: 'user', content: t });
+    if (turnos.length > 16) turnos = turnos.slice(-16);
+    while (turnos.length && turnos[0].role !== 'user') turnos.shift();
+    ocupado = true; ctl = new AbortController();
+    const b = bolha('jv', 'Um instante, senhor...');
+    try {
+      const r = await sample([{ role: 'user', content: regras() }, ...turnos], {
+        tools: ferramentas(), modelTier: 'quick', signal: ctl.signal,
+        onText: ({ text }) => { b.textContent = text; msgs.scrollTop = msgs.scrollHeight; },
+      });
+      const resposta = r.text.trim();
+      b.textContent = resposta;
+      turnos.push({ role: 'assistant', content: resposta });
+      falar(resposta.split(/\n\s*\n/).pop(), () => { if (prefs.continuo && painel.classList.contains('aberto') && !micBloqueado) ouvir(); });
+    } catch (e) {
+      const msg = {
+        cancelled: 'Interrompido.',
+        not_granted: 'O Javis precisa da sua permissão para usar o Claude neste app. Feche e abra de novo para permitir.',
+        rate_limited: 'Muitos pedidos seguidos. Aguarde um pouco e tente de novo.',
+        tools_unavailable: 'Esta tela não permite que o Javis mexa nos dados. Atualize o app do Claude.',
+        session_expired: 'A sessão expirou. Entre de novo no Claude.',
+      }[e && e.code] || 'Tive um problema para responder agora. Tente de novo, senhor.';
+      b.textContent = (e && e.text ? e.text + '\n\n' : '') + msg;
+      if (e && e.code !== 'cancelled') falar(msg);
+      turnos.pop();
+    } finally { ocupado = false; ctl = null; }
+  }
+
+  // ---------- abrir / fechar ----------
+  let saudou = false;
+  function abrir() {
+    painel.classList.add('aberto');
+    if (tts && !saudou) { tts.speak(new SpeechSynthesisUtterance('')); } // libera a fala no iPhone
+    if (!saudou) {
+      saudou = true;
+      const h = new Date().getHours();
+      const s = (h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite') + ', senhor. Javis à disposição. Em que posso ajudar?';
+      bolha('jv', s); falar(s);
+    }
+  }
+  function fechar() { painel.classList.remove('aberto'); calar(); if (ctl) ctl.abort(); if (ouvindo && rec) rec.stop(); }
+  window.javisMinimizar = () => { painel.classList.remove('aberto'); };
+
+  fab.onclick = () => painel.classList.contains('aberto') ? fechar() : abrir();
+  $('jv-fechar').onclick = fechar;
+  mic.onclick = ouvir;
+  $('jv-env').onclick = enviar;
+  txt.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); enviar(); } });
+  $('jv-som').onclick = () => { prefs.som = !prefs.som; salvarPrefs(); $('jv-som').classList.toggle('on', prefs.som); $('jv-som').textContent = prefs.som ? '🔊' : '🔇'; if (!prefs.som) calar(); };
+  $('jv-som').classList.toggle('on', prefs.som); $('jv-som').textContent = prefs.som ? '🔊' : '🔇';
+  $('jv-ajuste').onclick = () => $('jv-cfg').classList.toggle('aberto');
+  $('jv-vel').value = prefs.vel; $('jv-tom').value = tomEfetivo(); $('jv-continuo').checked = !!prefs.continuo;
+  $('jv-vel').oninput = e => { prefs.vel = Number(e.target.value); salvarPrefs(); };
+  $('jv-tom').oninput = e => { prefs.tom = Number(e.target.value); prefs.tomManual = true; salvarPrefs(); };
+  $('jv-continuo').onchange = e => { prefs.continuo = e.target.checked; salvarPrefs(); };
+  $('jv-voz').onchange = e => { const v = vozes[Number(e.target.value)]; prefs.voz = v ? v.name : ''; prefs.tomManual = false; prefs.tom = null; salvarPrefs(); $('jv-tom').value = tomEfetivo(); };
+  $('jv-testar').onclick = () => falar('Às suas ordens, senhor. A Forja está em plena operação.');
+  $('jv-limpar').onclick = () => { turnos = []; msgs.innerHTML = ''; bolha('sis', 'Conversa limpa.'); };
+})();
+
+</script>
+</body>
+</html>
+
+</body></html>
